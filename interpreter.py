@@ -279,12 +279,20 @@ class DicInterpreter(Interpreter):
         return self.visit(tree.children[0])
     
     def function_call(self,tree):
-        pass
+        self.scope = self.visit(tree.children[0])
+        self.visit(tree.children[1:])
+        #nao sei
 
     def list_declaration(self,tree):
+        #nao sei
+        # [12,3252+432,42354]
         pass
 
     def condition(self,tree):
+        first_expression = self.visit(tree.children[1])
+        if first_expression:
+            self.visit(tree.children[2])
+        #continuar se o if for falso e o else e o match
         pass
 
     def write(self,tree):
