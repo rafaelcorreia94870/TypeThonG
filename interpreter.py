@@ -1,11 +1,13 @@
 from lark import Lark,Transformer,Discard
 from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
+from lark.indenter import Indenter
+from collections import Counter
 #dicionario com as chaves como variavel, scope e o seu valor os valores que lhe foram atribuidos
 
 grammar = r'''
     // Regras Sintaticas - typethong script.tt
-    ?start: _NL* content*
+    start: _NL* content*
 
     content: declaration (_NL)*
            | attribution (_NL)*
@@ -38,35 +40,35 @@ grammar = r'''
         | T_TUPLE LSP type (COMMA type)+ RSP
         | T_STRING
         | T_LIST LSP type RSP
+        | T_VOID
 
-    expression : priority_expr
-               | priority_expr relational_op priority_expr
+    expression: priority_expr
+              | priority_expr relational_op priority_expr
                 
-    relational_op : ISEQ | NE | LT | LE | GT | GE
+    relational_op: ISEQ | NE | LT | LE | GT | GE
     
     priority_expr : term
-        | priority_expr addOp term
+        | priority_expr add_op term
      
     term : factor
-         | term multOp factor
+         | term mult_op factor
     
-    addOp : PLUS | MINUS | OR
+    add_op : PLUS | MINUS | OR
     
-    multOp : TIMES | DIVIDE | AND | MOD | POW
+    mult_op : TIMES | DIVIDE | AND | MOD | POW
     
     factor : INT
            | STRING
-           | LP expression RP
-           | functionCall
-           | uniOp factor
-           | ID
-           | listDeclaration
+           | LCP expression RCP
+           | function_call
+           | uni_op factor
+           | ID                 -> factor_id
+           | list_declaration
            
-     uniOp : PLUS | MINUS | NOT
+    uni_op : PLUS | MINUS | NOT
      
-     functionCall : ID LCP ( | expression (COMMA expression)*) RCP
-     listDeclaration : LSP (expression (COMMA expression)*)? RSP
-    
+    function_call : ID LCP ( | expression (COMMA expression)*) RCP
+    list_declaration : LSP (expression (COMMA expression)*)? RSP
 
     condition: IF expression body (ELIF expression body)* (ELSE body)?
              | MATCH variable COLON _NL _INDENT (WITH expression body)+ _DEDENT
@@ -144,8 +146,8 @@ grammar = r'''
     _NL: /(\r?\n[\t ]*)+/
 '''
 
+
 def relationOperation(op, a, b):
-    op = op.value
     if op == "==":
         return a == b
     elif op == "!=":
@@ -160,7 +162,6 @@ def relationOperation(op, a, b):
         return a >= b
     
 def addOperation(op, a, b):
-    op = op.type
     if op == "PLUS":
         return a + b
     elif op == "MINUS":
@@ -169,7 +170,6 @@ def addOperation(op, a, b):
         return a or b
     
 def multOperation(op, a, b):
-    op = op.type
     if op == "TIMES":
         return a * b
     elif op == "DIVIDE":
@@ -185,46 +185,57 @@ class DicInterpreter(Interpreter):
     def __init__(self):
         self.dic = {}
         self.scope = ""
+        self.instructions = Counter()
+
     def start(self,tree):
         self.visit_children(tree)
+        for (name, scope), (type, attr) in self.dic.items():
+            if not attr:
+                print(f"[{scope}] Variável {name} declarada mas nunca mencionada.") 
         return self.dic
     
     def content(self,tree):
         self.visit_children(tree)
 
     def function(self,tree):
-        self.scope = self.visit(tree.children[1])
+        self.scope = tree.children[1].value
         self.visit_children(tree)
         self.scope = ""
 
     def declaration(self,tree):
-        name = self.visit(tree.children[1])
-        key = (self.scope, name)
+        name = tree.children[1].value
+        key = (name,self.scope)
         type = self.visit(tree.children[0])
         if key not in self.dic:
             self.dic[key] = (type,[])
         else:
-            print(f"Error: Variable {name} already declared")
+            scope = self.scope
+            if self.scope == "":
+                scope = "GLOBAL"
+            print(f"Error: Variable {name} already declared in scope {scope}")
 
-        if len(tree)>2:
-            #verificar tipo da expressão depois
+        if len(tree.children)>2:
+            self.instructions["attribution"] += 1
+            #verificar se o tipo da expressão coincide com o tipo da variável
             self.dic[key][1].append(self.visit(tree.children[3]))
     
-    def atribuition(self,tree):
+    def attribution(self,tree):
         name = self.visit(tree.children[0])
-        key = (self.scope, name)
+        key = (name,self.scope)
         
+        self.instructions["attribution"] += 1
         if key in self.dic:
             #verificar tipo da expressão depois
             self.dic[key][1].append(self.visit(tree.children[2]))
         else:
+            # verificar se a varíavel está declarada no scope global
             print(f"Error: Variable {name} not declared")
     
     def body(self,tree):
         self.visit_children(tree)
 
     def variable(self,tree):
-        return self.visit(tree.children[0])
+        return tree.children[0].value
     
     #def access(self,tree):
     #    return self.visit(tree.children[0])
@@ -243,9 +254,19 @@ class DicInterpreter(Interpreter):
         else:
             return relationOperation(result[1], result[0], result[2])
 
+    def factor_id(self,tree):
+        id = self.visit_children(tree)[0].value
+        # int b = a + 1 (variável não declarada)
+        if (id, self.scope) not in self.dic:
+            print(f"Erro, váriavel {id} não declarada.")
+        # int a (declarada, mas não inicializada)
+        # int b = a + 1
+        elif not self.dic[(id,self.scope)][1]:
+            print(f"Warning, váriavel {id} não inicializada.")
+
         
     def relational_op(self,tree):
-        return self.visit(tree.children[0])
+        return tree.children[0].value
     
     def priority_expr(self,tree):
         result = self.visit_children(tree)
@@ -262,10 +283,10 @@ class DicInterpreter(Interpreter):
             return multOperation(result[1], result[0], result[2])
 
     def add_op(self,tree):
-        return self.visit(tree.children[0])
+        return tree.children[0].value
     
     def mult_op(self,tree):
-        return self.visit(tree.children[0])
+        return tree.children[0].value
     
     def factor(self,tree):
         result = self.visit_children(tree)
@@ -276,16 +297,18 @@ class DicInterpreter(Interpreter):
             return result[1](result[0])
 
     def uni_op(self,tree):
-        return self.visit(tree.children[0])
+        return tree.children[0].value
     
     def function_call(self,tree):
-        self.scope = self.visit(tree.children[0])
-        self.visit(tree.children[1:])
-        #nao sei
+        pass
+        #self.scope = self.visit(tree.children[0])
+        #self.visit(tree.children[1:])
+        # no caso em que se atribui o valor de uma função a uma variável é preciso ver se os tipos batem certo
 
     def list_declaration(self,tree):
         #nao sei
         # [12,3252+432,42354]
+        # temos que mandar o tipo pa fora, yo
         pass
 
     def condition(self,tree):
@@ -293,6 +316,11 @@ class DicInterpreter(Interpreter):
         if first_expression:
             self.visit(tree.children[2])
         #continuar se o if for falso e o else e o match
+        """
+        # é apenas um if, sem elif nem else
+        if len(tree.children) < 3:
+            self.condicao_global = 
+        """
         pass
 
     def write(self,tree):
@@ -310,8 +338,60 @@ class DicInterpreter(Interpreter):
     def add_elem(self,tree):
         pass
 
-    
+class TreeIndenter(Indenter):
+    NL_type = '_NL'
+    OPEN_PAREN_types = []
+    CLOSE_PAREN_types = []
+    INDENT_type = '_INDENT'
+    DEDENT_type = '_DEDENT'
+    tab_len = 4
 
+frase = '''
+int x = 1
+void main():
+    x = 2
+    int y = 4
+    while x < y:
+        x = sum(1)
+        y = y + 1
 
-    
-    
+int sum(int n):
+    int r = n + 1
+    return r
+
+list[int] nums = [1,2,3,4]
+list[int] sums = [sum(1), sum(2)]
+
+for n in nums:
+    n = ((n*4)/2)^2
+    do:
+        n = n + x
+    while (n % 2)
+
+    if n % 2 == 0:
+        nums[1:] = n
+        print('numbers!')
+        print(nums)
+        int r = read(sys)
+
+'''
+
+frase1='''
+int x=1
+void main():
+    x = 2
+    int y = 4
+    while x < y:
+        x = sum(1)
+        y = y + 1'''
+
+nao_funciona = '''
+t = nums[1:3]
+sys.out = sys.in //access error
+'''
+
+p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
+
+tree = p.parse(frase)  # retorna uma tree
+data = DicInterpreter().visit(tree)
+print(data)
