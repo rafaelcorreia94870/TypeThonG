@@ -181,6 +181,14 @@ def multOperation(op, a, b):
         return a % b
     elif op == "POW":
         return a ** b
+    
+class TreeIndenter(Indenter):
+    NL_type = '_NL'
+    OPEN_PAREN_types = []
+    CLOSE_PAREN_types = []
+    INDENT_type = '_INDENT'
+    DEDENT_type = '_DEDENT'
+    tab_len = 4
 
 class DicInterpreter(Interpreter):
     def __init__(self):
@@ -231,7 +239,10 @@ class DicInterpreter(Interpreter):
         self.instructions["attribution"] += 1
         if key in self.dic:
             #verificar tipo da expressão depois
-            self.update_dic(key, child=2)
+            if self.dic[key][0] == 'int':
+                self.dic[key][1].append(int(self.visit(tree.children[2]).value))
+            elif self.dic[key][0] == 'string':
+                self.dic[key][1].append(self.visit(tree.children[2]).value.strip('"'))
         else:
             # verificar se a varíavel está declarada no scope global
             if (name,"") in self.dic:
@@ -374,7 +385,6 @@ class DicInterpreter(Interpreter):
                         break
                     elif child.type == "ELSE":
                         self.visit(tree.children[i+1])
-        pass
 
     def write(self,tree):
         pass
@@ -391,19 +401,12 @@ class DicInterpreter(Interpreter):
     def add_elem(self,tree):
         pass
     
+    # não funciona n sei pq
     def update_dic(self, key, child):
         if self.dic[key][0] == 'int':
             self.dic[key][1].append(int(self.visit(tree.children[child]).value))
         elif self.dic[key][0] == 'string':
             self.dic[key][1].append(self.visit(tree.children[child]).value.strip('"'))
-
-class TreeIndenter(Indenter):
-    NL_type = '_NL'
-    OPEN_PAREN_types = []
-    CLOSE_PAREN_types = []
-    INDENT_type = '_INDENT'
-    DEDENT_type = '_DEDENT'
-    tab_len = 4
 
 frase = '''
 int x = 1
@@ -440,7 +443,8 @@ int x=1
 string z = "ola"
 void main():
     int y = 4
-    x = 2
+    y = 2
+    int x = 2
     z = "adeus"
     while x < y:
         x = sum(1)
