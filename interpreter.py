@@ -79,8 +79,8 @@ grammar = r'''
     read: READ LCP RCP
 
     cycle: DO body WHILE expression _NL+
-         | WHILE expression body
-         | FOR ID IN iterable body
+         | WHILE expression body -> while_loop
+         | FOR ID IN iterable body -> for_loop
 
     iterable: RANGE LCP INT (COMMA INT)? RCP
             | variable
@@ -194,15 +194,25 @@ class DicInterpreter(Interpreter):
     def __init__(self):
         self.dic = {}
         self.scope = ""
-        self.instructions = Counter()
-
-
+    
+    # vars= [(ID,scope,type),...] 
+    # erros = [lista de erros]
+    # tipos[Tipo de dados] = [(id,scope),..]
+    # instrucao = {total: int, atribuicoes: int, leitura: int, escrita, int, condicionais: int, cíclicas : int}
+    # mausif : in
+    # listaif = [strings,..] 
     def start(self,tree):
+        self.info = {"vars": [], "erros": [], "tipos": {}, "instrucao": Counter(), "mausif": [], "listaif": []}
         self.visit_children(tree)
-        for (name, scope), (_, attr) in self.dic.items():
+        for (name, scope), (type, attr) in self.dic.items():
+            if scope=="":
+                scope = "global"
+            self.info["vars"].append((name, scope, type))
+            self.info["tipos"].setdefault(type, []).append((name, scope))
             if not attr:
-                print(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
-        return self.dic
+                self.info["erros"].append(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
+        self.info["vars"].sort(key=lambda x: (x[1],x[0]))
+        return self.info
     
     def content(self,tree):
         self.visit_children(tree)
@@ -222,10 +232,10 @@ class DicInterpreter(Interpreter):
             scope = self.scope
             if self.scope == "":
                 scope = "global"
-            print(f"[ERROR] Variable {name} already declared in scope {scope}")
+            self.info["erros"].append(f"[ERROR] Variable {name} already declared in scope {scope}")
 
         if len(tree.children)>2:
-            self.instructions["attribution"] += 1
+            self.info["instrucao"]["attribution"] += 1
             #verificar se o tipo da expressão coincide com o tipo da variável
             if self.dic[key][0] == 'int':
                 self.dic[key][1].append(int(self.visit(tree.children[3]).value))
@@ -236,7 +246,7 @@ class DicInterpreter(Interpreter):
         name = self.visit(tree.children[0])
         key = (name,self.scope)
         
-        self.instructions["attribution"] += 1
+        self.info["instrucao"]["attribution"] += 1
         if key in self.dic:
             #verificar tipo da expressão depois
             if self.dic[key][0] == 'int':
@@ -253,7 +263,7 @@ class DicInterpreter(Interpreter):
                 elif self.dic[key][0] == 'string':
                     self.dic[key][1].append(self.visit(tree.children[2]).value.strip('"'))
             else:
-                print(f"[ERROR] Variable {name} not declared")
+                self.info["erros"].append(f"[ERROR] Variable {name} not declared")
     
     def body(self,tree):
         self.visit_children(tree)
@@ -282,11 +292,11 @@ class DicInterpreter(Interpreter):
         id = self.visit_children(tree)[0].value
         # int b = a + 1 (variável não declarada)
         if (id, self.scope) not in self.dic:
-            print(f"[ERROR] Variable {id} not declared.")
+            self.info["erros"].append(f"[ERROR] Variable {id} not declared.")
         # int a (declarada, mas não inicializada)
         # int b = a + 1
         elif not self.dic[(id,self.scope)][1]:
-            print(f"[WARNING] Variable {id} not initialized.")
+            self.info["erros"].append(f"[WARNING] Variable {id} not initialized.")
 
         
     def relational_op(self,tree):
@@ -387,13 +397,32 @@ class DicInterpreter(Interpreter):
                         self.visit(tree.children[i+1])
 
     def write(self,tree):
-        pass
+        self.info["instrucao"]["escrita"] += 1
+        #isto seria se fosse para correr, não sei se é suposto
+        #print(self.visit(tree.children[2]))
 
     def read(self,tree):
-        pass
+        self.info["instrucao"]["leitura"] += 1
+
 
     def cycle(self,tree):
-        pass
+        self.info["instrucao"]["cíclicas"] += 1
+        self.visit(tree.children[1])
+    
+    def while_loop(self,tree):
+        self.info["instrucao"]["cíclicas"] += 1
+        self.visit(tree.children[2])
+        
+    def for_loop(self,tree):
+        var_name = tree.children[1].value
+        if (var_name,self.scope) in self.dic:
+            self.info["erros"].append(f"[ERROR] Variable {var_name} already declared in scope {self.scope}")
+        # ver o tipo do iteravel
+        self.dict[(var_name,self.scope)] = ("?",[])
+        self.info["instrucao"]["cíclicas"] += 1
+        self.visit(tree.children[4])
+        
+        
 
     def iterable(self,tree):
         pass
@@ -439,6 +468,7 @@ for n in nums:
 '''
 
 frase1='''
+x=3
 int x=1
 string z = "ola"
 void main():
