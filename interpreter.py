@@ -1,3 +1,4 @@
+import pprint
 from lark import Lark,Transformer,Discard
 from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
@@ -187,11 +188,12 @@ class DicInterpreter(Interpreter):
         self.scope = ""
         self.instructions = Counter()
 
+
     def start(self,tree):
         self.visit_children(tree)
-        for (name, scope), (type, attr) in self.dic.items():
+        for (name, scope), (_, attr) in self.dic.items():
             if not attr:
-                print(f"[{scope}] Variável {name} declarada mas nunca mencionada.") 
+                print(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
         return self.dic
     
     def content(self,tree):
@@ -205,19 +207,22 @@ class DicInterpreter(Interpreter):
     def declaration(self,tree):
         name = tree.children[1].value
         key = (name,self.scope)
-        type = self.visit(tree.children[0])
+        type = self.visit(tree.children[0]).value
         if key not in self.dic:
             self.dic[key] = (type,[])
         else:
             scope = self.scope
             if self.scope == "":
-                scope = "GLOBAL"
-            print(f"Error: Variable {name} already declared in scope {scope}")
+                scope = "global"
+            print(f"[ERROR] Variable {name} already declared in scope {scope}")
 
         if len(tree.children)>2:
             self.instructions["attribution"] += 1
             #verificar se o tipo da expressão coincide com o tipo da variável
-            self.dic[key][1].append(self.visit(tree.children[3]))
+            if self.dic[key][0] == 'int':
+                self.dic[key][1].append(int(self.visit(tree.children[3]).value))
+            elif self.dic[key][0] == 'string':
+                self.dic[key][1].append(self.visit(tree.children[3]).value.strip('"'))
     
     def attribution(self,tree):
         name = self.visit(tree.children[0])
@@ -226,10 +231,18 @@ class DicInterpreter(Interpreter):
         self.instructions["attribution"] += 1
         if key in self.dic:
             #verificar tipo da expressão depois
-            self.dic[key][1].append(self.visit(tree.children[2]))
+            self.update_dic(key, child=2)
         else:
             # verificar se a varíavel está declarada no scope global
-            print(f"Error: Variable {name} not declared")
+            if (name,"") in self.dic:
+                key = (name,"")
+                # self.update_dic(key, child=2) -> n funciona, entra em recursividade infinita
+                if self.dic[key][0] == 'int':
+                    self.dic[key][1].append(int(self.visit(tree.children[2]).value))
+                elif self.dic[key][0] == 'string':
+                    self.dic[key][1].append(self.visit(tree.children[2]).value.strip('"'))
+            else:
+                print(f"[ERROR] Variable {name} not declared")
     
     def body(self,tree):
         self.visit_children(tree)
@@ -258,11 +271,11 @@ class DicInterpreter(Interpreter):
         id = self.visit_children(tree)[0].value
         # int b = a + 1 (variável não declarada)
         if (id, self.scope) not in self.dic:
-            print(f"Erro, váriavel {id} não declarada.")
+            print(f"[ERROR] Variable {id} not declared.")
         # int a (declarada, mas não inicializada)
         # int b = a + 1
         elif not self.dic[(id,self.scope)][1]:
-            print(f"Warning, váriavel {id} não inicializada.")
+            print(f"[WARNING] Variable {id} not initialized.")
 
         
     def relational_op(self,tree):
@@ -306,21 +319,61 @@ class DicInterpreter(Interpreter):
         # no caso em que se atribui o valor de uma função a uma variável é preciso ver se os tipos batem certo
 
     def list_declaration(self,tree):
-        #nao sei
+        #nao sei   def condition(self,tree):
+        # é apenas um if, sem elif nem else
+        if len(tree.children) == 3:
+            self.if_condition += self.visit(tree.children[1])
+            self.if_bodies.append(self.visit(tree.children[2]))
+        # se tiver if e else
+        elif len(tree.children) == 5:
+            # se a condição do if for verdadeira
+            if self.visit(tree.children[1]):
+                self.visit(tree.children[2])
+            else:
+                self.visit(tree.children[4])
+        # se tiver elif's e/ou else
+        else:
+            # se a condição do if for verdadeira
+            if self.visit(tree.children[1]):
+                self.visit(tree.children[2])
+            # verificar se a condição dos elif's é verdadeira, se não, e existir else, executar o else
+            else:
+                for i, child in enumerate(tree.children[2:]):
+                    if child.type == "ELIF" and self.visit(tree.children[i+1]):
+                        self.visit(tree.children[i+2])
+                        break
+                    elif child.type == "ELSE":
+                        self.visit(tree.children[i+1])
+        pass
         # [12,3252+432,42354]
         # temos que mandar o tipo pa fora, yo
         pass
 
     def condition(self,tree):
-        first_expression = self.visit(tree.children[1])
-        if first_expression:
-            self.visit(tree.children[2])
-        #continuar se o if for falso e o else e o match
-        """
         # é apenas um if, sem elif nem else
-        if len(tree.children) < 3:
-            self.condicao_global = 
-        """
+        if len(tree.children) == 3:
+            if self.visit(tree.children[1]):
+                self.visit(tree.children[2])
+        # se tiver if e else
+        elif len(tree.children) == 5:
+            # se a condição do if for verdadeira
+            if self.visit(tree.children[1]):
+                self.visit(tree.children[2])
+            else:
+                self.visit(tree.children[4])
+        # se tiver elif's e/ou else
+        else:
+            # se a condição do if for verdadeira
+            if self.visit(tree.children[1]):
+                self.visit(tree.children[2])
+            # verificar se a condição dos elif's é verdadeira, se não, e existir else, executar o else
+            else:
+                for i, child in enumerate(tree.children[2:]):
+                    if child.type == "ELIF" and self.visit(tree.children[i+1]):
+                        self.visit(tree.children[i+2])
+                        break
+                    elif child.type == "ELSE":
+                        self.visit(tree.children[i+1])
         pass
 
     def write(self,tree):
@@ -337,6 +390,12 @@ class DicInterpreter(Interpreter):
 
     def add_elem(self,tree):
         pass
+    
+    def update_dic(self, key, child):
+        if self.dic[key][0] == 'int':
+            self.dic[key][1].append(int(self.visit(tree.children[child]).value))
+        elif self.dic[key][0] == 'string':
+            self.dic[key][1].append(self.visit(tree.children[child]).value.strip('"'))
 
 class TreeIndenter(Indenter):
     NL_type = '_NL'
@@ -378,12 +437,20 @@ for n in nums:
 
 frase1='''
 int x=1
+string z = "ola"
 void main():
-    x = 2
     int y = 4
+    x = 2
+    z = "adeus"
     while x < y:
         x = sum(1)
         y = y + 1'''
+        
+ifs = '''
+int x = 1
+if x == 1:
+    x = 3
+'''
 
 nao_funciona = '''
 t = nums[1:3]
@@ -391,7 +458,7 @@ sys.out = sys.in //access error
 '''
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-
-tree = p.parse(frase)  # retorna uma tree
+pydot__tree_to_png(p.parse(frase1), "tree.png")
+tree = p.parse(frase1)  # retorna uma tree
 data = DicInterpreter().visit(tree)
-print(data)
+pprint.pprint(data)
