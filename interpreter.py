@@ -203,16 +203,17 @@ class DicInterpreter(Interpreter):
     # mausif : in
     # listaif = [strings,..] 
     def start(self,tree):
-        self.info = {"vars": [], "erros": [], "tipos": {}, "instrucao": Counter(), "mausif": [], "listaif": []}
+        self.info = {"vars": [], "erros": [], "tipos": Counter(), "instrucao": Counter(), "mausif": [], "listaif": []}
         self.visit_children(tree)
         for (name, scope), (type, attr) in self.dic.items():
             if scope=="":
                 scope = "global"
             self.info["vars"].append((name, scope, type))
-            self.info["tipos"].setdefault(type, []).append((name, scope))
+            self.info["tipos"][type]+=1
             if not attr:
                 self.info["erros"].append(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
         self.info["vars"].sort(key=lambda x: (x[1],x[0]))
+        self.info["tipos"] = self.info["tipos"].items()
         return self.info
     
     def content(self,tree):
@@ -512,6 +513,8 @@ template = env.get_template('index.html')
 # Render the template with variables
 output = template.render(variables)
 
+
+with open("finalOutput.html", "w") as f:
+    f.write(output)
 # Print or use the rendered HTML
-print(output)
 
