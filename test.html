@@ -1,3 +1,19 @@
+result len: 1
+result len: 1
+result len: 1
+result len: 1
+result len: 1
+result len: 1
+{'erros': ['[ERROR] Variable x not declared'],
+ 'instrucao': Counter({'attribution': 7}),
+ 'listaif': [],
+ 'mausif': [],
+ 'tipos': {'int': [('x', 'global'), ('y', 'main'), ('x', 'main')],
+           'string': [('z', 'global')]},
+ 'vars': [('x', 'global', 'int'),
+          ('z', 'global', 'string'),
+          ('x', 'main', 'int'),
+          ('y', 'main', 'int')]}
 <!DOCTYPE html>
 <html>
   <head>
@@ -29,13 +45,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for id,scope,type in vars %}
+                            
                             <tr>
-                                <td>{{ id }}</td>
-                                <td>{{ scope }}</td>
-                                <td>{{ type }}</td>
+                                <td>x</td>
+                                <td>global</td>
+                                <td>int</td>
                             </tr>
-                            {% endfor %}
+                            
+                            <tr>
+                                <td>z</td>
+                                <td>global</td>
+                                <td>string</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>x</td>
+                                <td>main</td>
+                                <td>int</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>y</td>
+                                <td>main</td>
+                                <td>int</td>
+                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
@@ -48,12 +82,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for tipo,numero in tipos %}
+                            
                             <tr>
-                                <td>{{ tipo }}</td>
-                                <td>{{ numero }}</td>
+                                <td></td>
+                                <td></td>
                             </tr>
-                            {% endfor %}
+                            
+                            <tr>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
@@ -65,13 +104,13 @@
                     <h4>ERRORS:</h4>
                 </header>
                 <div class="w3-code w3-border scrollable-table" id="results">
-                    {% for erro in erros %}
-                    <h5>{{ erro }}</h5>
-                    {% endfor %}
+                    
+                    <h5>[ERROR] Variable x not declared</h5>
+                    
                 </div>
                 <div class="w3-container w3-padding">
-                    <h4>There are {{ mausif }} occurencies of nested code</h4>
-                    <h4>You have {{ listaif.length }} ifs that could have been joined</h4>
+                    <h4>There are [] occurencies of nested code</h4>
+                    <h4>You have  ifs that could have been joined</h4>
                 </div>
             </div>
         </div>

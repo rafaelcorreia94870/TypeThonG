@@ -4,6 +4,7 @@ from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
 from lark.indenter import Indenter
 from collections import Counter
+from jinja2 import Environment, FileSystemLoader
 #dicionario com as chaves como variavel, scope e o seu valor os valores que lhe foram atribuidos
 
 grammar = r'''
@@ -496,7 +497,21 @@ sys.out = sys.in //access error
 '''
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-pydot__tree_to_png(p.parse(frase2), "tree.png")
-tree = p.parse(frase2)  # retorna uma tree
-data = DicInterpreter().visit(tree)
-pprint.pprint(data)
+pydot__tree_to_png(p.parse(frase1), "tree.png")
+tree = p.parse(frase1)  # retorna uma tree
+variables = DicInterpreter().visit(tree)
+pprint.pprint(variables)
+
+env = Environment(loader=FileSystemLoader('.'))
+
+# Load your HTML template
+template = env.get_template('index.html')
+
+
+
+# Render the template with variables
+output = template.render(variables)
+
+# Print or use the rendered HTML
+print(output)
+
