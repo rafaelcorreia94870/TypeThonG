@@ -214,6 +214,7 @@ class DicInterpreter(Interpreter):
                 self.info["erros"].append(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
         self.info["vars"].sort(key=lambda x: (x[1],x[0]))
         self.info["tipos"] = self.info["tipos"].items()
+        pprint.pprint(self.dic)
         return self.info
     
     def content(self,tree):
@@ -246,16 +247,18 @@ class DicInterpreter(Interpreter):
         name = self.visit(tree.children[0])
         key = (name,self.scope)
         
-        self.info["instrucao"]["attribution"] += 1
+       
         if key in self.dic:
             #verificar tipo da expressão depois
             self.dic[key][1].append(self.visit(tree.children[2]))
+            self.info["instrucao"]["attribution"] += 1
 
         else:
             # verificar se a varíavel está declarada no scope global
             if (name,"") in self.dic:
                 key = (name,"")
                 self.dic[key][1].append(self.visit(tree.children[2]))
+                self.info["instrucao"]["attribution"] += 1
 
             else:
                 self.info["erros"].append(f"[ERROR] Variable {name} not declared")
@@ -278,15 +281,18 @@ class DicInterpreter(Interpreter):
         
     def expression(self,tree):
         result = self.visit_children(tree)
-        print(f"result len: {len(result)}")
+       # print(f"result: {result}")
         if len(result) == 1:
-            if result[0].type == "INT":
+            #check if result[0] is a list
+            if result[0].__class__.__name__ == "str":
+                return result[0]
+            elif result[0].type == "INT":
                 return int(result[0].value)
             elif result[0].type == "STRING":
                 return result[0].value.strip('"')
             return result[0]
         else:
-            return relationOperation(result[1], result[0], result[2])
+            return " ".join([str(result[0]),str(result[1]),str(result[2])])#relationOperation(result[1], result[0], result[2])
 
     def factor_id(self,tree):
         id = self.visit_children(tree)[0].value
@@ -297,6 +303,7 @@ class DicInterpreter(Interpreter):
         # int b = a + 1
         elif not self.dic[(id,self.scope)][1]:
             self.info["erros"].append(f"[WARNING] Variable {id} not initialized.")
+        return id
 
         
     def relational_op(self,tree):
@@ -307,14 +314,14 @@ class DicInterpreter(Interpreter):
         if len(result) == 1:
             return result[0]
         else:
-            return addOperation(result[1], result[0], result[2])
+            return " ".join([str(result[0]),str(result[1]),str(result[2])]) #addOperation(result[1], result[0], result[2])
 
     def term(self,tree):
         result = self.visit_children(tree)
         if len(result) == 1:
             return result[0]
         else:
-            return multOperation(result[1], result[0], result[2])
+            return " ".join([str(result[0]),str(result[1]),str(result[2])]) #multOperation(result[1], result[0], result[2])
 
     def add_op(self,tree):
         return tree.children[0].value
@@ -334,41 +341,44 @@ class DicInterpreter(Interpreter):
         return tree.children[0].value
     
     def function_call(self,tree):
-        pass
+        function_name = tree.children[0].value
+        arguments = self.visit_children(tree)[2:-1]
+        # fazer a funcao str a todos os argumentos
+        arguments = [str(arg) for arg in arguments]
+        return function_name+"("+"".join(arguments)+")"
         #self.scope = self.visit(tree.children[0])
         #self.visit(tree.children[1:])
         # no caso em que se atribui o valor de uma função a uma variável é preciso ver se os tipos batem certo
 
     def list_declaration(self,tree):
-        #nao sei   def condition(self,tree):
-        # é apenas um if, sem elif nem else
-        if len(tree.children) == 3:
-            self.if_condition += self.visit(tree.children[1])
-            self.if_bodies.append(self.visit(tree.children[2]))
-        # se tiver if e else
-        elif len(tree.children) == 5:
-            # se a condição do if for verdadeira
-            if self.visit(tree.children[1]):
-                self.visit(tree.children[2])
-            else:
-                self.visit(tree.children[4])
-        # se tiver elif's e/ou else
-        else:
-            # se a condição do if for verdadeira
-            if self.visit(tree.children[1]):
-                self.visit(tree.children[2])
-            # verificar se a condição dos elif's é verdadeira, se não, e existir else, executar o else
-            else:
-                for i, child in enumerate(tree.children[2:]):
-                    if child.type == "ELIF" and self.visit(tree.children[i+1]):
-                        self.visit(tree.children[i+2])
-                        break
-                    elif child.type == "ELSE":
-                        self.visit(tree.children[i+1])
-        pass
-        # [12,3252+432,42354]
-        # temos que mandar o tipo pa fora, yo
-        pass
+        return self.visit_children(tree)
+    
+    # def condition(self,tree):
+    #     # é apenas um if, sem elif nem else
+    #     if len(tree.children) == 3:
+    #         self.if_condition += self.visit(tree.children[1])
+    #         self.if_bodies.append(self.visit(tree.children[2]))
+    #     # se tiver if e else
+    #     elif len(tree.children) == 5:
+    #         # se a condição do if for verdadeira
+    #         if self.visit(tree.children[1]):
+    #             self.visit(tree.children[2])
+    #         else:
+    #             self.visit(tree.children[4])
+    #     # se tiver elif's e/ou else
+    #     else:
+    #         # se a condição do if for verdadeira
+    #         if self.visit(tree.children[1]):
+    #             self.visit(tree.children[2])
+    #         # verificar se a condição dos elif's é verdadeira, se não, e existir else, executar o else
+    #         else:
+    #             for i, child in enumerate(tree.children[2:]):
+    #                 if child.type == "ELIF" and self.visit(tree.children[i+1]):
+    #                     self.visit(tree.children[i+2])
+    #                     break
+    #                 elif child.type == "ELSE":
+    #                     self.visit(tree.children[i+1])
+    #     return "condition"
 
     def condition(self,tree):
         # é apenas um if, sem elif nem else
@@ -395,6 +405,7 @@ class DicInterpreter(Interpreter):
                         break
                     elif child.type == "ELSE":
                         self.visit(tree.children[i+1])
+        return "condition"
 
     def write(self,tree):
         self.info["instrucao"]["escrita"] += 1
@@ -476,10 +487,9 @@ void main():
     y = 2
     int x = 2
     z = "adeus"
-''' 
-'''
-    while x < y:
-        x = sum(1)
+    x = x + 1
+    while x<y :
+        x = add(1,4)
         y = y + 1'''
         
 frase2 = '''
