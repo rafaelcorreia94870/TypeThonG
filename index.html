@@ -10,19 +10,45 @@
             max-height: 15%; /* Adjust the max height as needed */
             overflow-y: auto;
         }
+        .verycoolshadow {
+              text-shadow:5px 5px 4px #e707cc;
+              color: white;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+          background: #DCDCDC;
+          border-radius: 10px;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+          background: #808080; 
+        }
     </style>
   </head>
-  <body>
+  <body style="background-color: #0d1117;">
     <div class="w3-card-4">
-        <header class="w3-container w3-black w3-center w3-wide"  style="text-shadow:1px 3px 0 #e707cc">
+        <header class="w3-container w3-center w3-wide verycoolshadow w3-padding" style="background-color: #010409;">
             <h1>typethong</h1>
         </header>
         <div class="w3-container w3-center w3-padding">
+            <div style="color: white">
+                <h2>There are {{ instrucao["attribution"] }} attributions, {{ instrucao["leitura"] }} reads, {{ instrucao["escrita"] }} writes, {{ instrucao["condicionais"] }} conditionals and {{ instrucao["cíclicas"] }} cycles</h2>
+            </div>
             <div class="w3-row">
-                <div class="w3-col w3-padding-large w3-bordered scrollable-table" style="width:60%;">
-                    <table class="w3-table-all w3-centered w3-bordered w3-striped">
-                        <thead>
-                            <tr class="w3-light-grey">
+                <div class="w3-col w3-padding-large ed scrollable-table" style="width:60%;">
+                    <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
+                        <thead style="background-color: #161b22;">
+                            <tr>
                                 <th>ID</th>
                                 <th>Scope</th>
                                 <th>Type</th>
@@ -39,10 +65,10 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="w3-col w3-padding-large w3-bordered scrollable-table" style="width:40%;">
-                    <table class="w3-table-all w3-centered w3-bordered w3-striped">
-                        <thead>
-                            <tr class="w3-light-grey">
+                <div class="w3-col w3-padding-large ed scrollable-table" style="width:40%;">
+                    <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
+                        <thead style="background-color: #161b22;">
+                            <tr>
                                 <th>Type</th>
                                 <th>Number of variables</th>
                             </tr>
@@ -60,22 +86,35 @@
             </div>
         </div>
         <div class="w3-row w3-padding">
-            <div class="w3-container w3-border w3-light-grey">
-                <header class="w3-container">
-                    <h4>ERRORS:</h4>
+            <div class="w3-container" style="background-color: #161b22;">
+                <header class="w3-container verycoolshadow">
+                    <h4>ERRORS</h4>
                 </header>
-                <div class="w3-code w3-border scrollable-table" id="results">
+                <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
                     {% for erro in erros %}
                     <h5>{{ erro }}</h5>
                     {% endfor %}
                 </div>
-                <div class="w3-container w3-padding">
+            </div>
+        </div>
+        <div class="w3-row w3-padding">
+            <div class="w3-container" style="background-color: #161b22;">
+
+                <header class="w3-container verycoolshadow">
+                    <h4>IFs</h4>
+                </header>
+                <div class="w3-container w3-padding" style="color: white;">
                     <h4>There are {{ mausif }} occurencies of nested code</h4>
                     <h4>You have {{ listaif.length }} ifs that could have been joined</h4>
                 </div>
+                <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
+                    {% for elem in listaif %}
+                    <h5>{{ elem }}</h5>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        <footer class="w3-container w3-black w3-padding w3-border">
+        <footer class="w3-container w3-padding" style="background-color: #010409;"">
         </footer>
     </div>
   </body>
