@@ -237,10 +237,8 @@ class DicInterpreter(Interpreter):
         if len(tree.children)>2:
             self.info["instrucao"]["attribution"] += 1
             #verificar se o tipo da expressão coincide com o tipo da variável
-            if self.dic[key][0] == 'int':
-                self.dic[key][1].append(int(self.visit(tree.children[3]).value))
-            elif self.dic[key][0] == 'string':
-                self.dic[key][1].append(self.visit(tree.children[3]).value.strip('"'))
+            self.dic[key][1].append(self.visit(tree.children[3]))
+
     
     def attribution(self,tree):
         name = self.visit(tree.children[0])
@@ -249,19 +247,14 @@ class DicInterpreter(Interpreter):
         self.info["instrucao"]["attribution"] += 1
         if key in self.dic:
             #verificar tipo da expressão depois
-            if self.dic[key][0] == 'int':
-                self.dic[key][1].append(int(self.visit(tree.children[2]).value))
-            elif self.dic[key][0] == 'string':
-                self.dic[key][1].append(self.visit(tree.children[2]).value.strip('"'))
+            self.dic[key][1].append(self.visit(tree.children[2]))
+
         else:
             # verificar se a varíavel está declarada no scope global
             if (name,"") in self.dic:
                 key = (name,"")
-                # self.update_dic(key, child=2) -> n funciona, entra em recursividade infinita
-                if self.dic[key][0] == 'int':
-                    self.dic[key][1].append(int(self.visit(tree.children[2]).value))
-                elif self.dic[key][0] == 'string':
-                    self.dic[key][1].append(self.visit(tree.children[2]).value.strip('"'))
+                self.dic[key][1].append(self.visit(tree.children[2]))
+
             else:
                 self.info["erros"].append(f"[ERROR] Variable {name} not declared")
     
@@ -283,7 +276,12 @@ class DicInterpreter(Interpreter):
         
     def expression(self,tree):
         result = self.visit_children(tree)
+        print(f"result len: {len(result)}")
         if len(result) == 1:
+            if result[0].type == "INT":
+                return int(result[0].value)
+            elif result[0].type == "STRING":
+                return result[0].value.strip('"')
             return result[0]
         else:
             return relationOperation(result[1], result[0], result[2])
@@ -476,9 +474,15 @@ void main():
     y = 2
     int x = 2
     z = "adeus"
+''' 
+'''
     while x < y:
         x = sum(1)
         y = y + 1'''
+        
+frase2 = '''
+int x = 1 + 1
+'''
         
 ifs = '''
 int x = 1
@@ -492,7 +496,7 @@ sys.out = sys.in //access error
 '''
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-pydot__tree_to_png(p.parse(frase1), "tree.png")
-tree = p.parse(frase1)  # retorna uma tree
+pydot__tree_to_png(p.parse(frase2), "tree.png")
+tree = p.parse(frase2)  # retorna uma tree
 data = DicInterpreter().visit(tree)
 pprint.pprint(data)
