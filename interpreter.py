@@ -71,8 +71,7 @@ grammar = r'''
            
     uni_op : PLUS | MINUS | NOT
      
-    function_call : ID LCP ( | expression (COMMA expression)*) RCP
-    list_declaration : LSP (expression (COMMA expression)*)? RSP
+
 
     condition: IF expression body (ELIF expression body)* (ELSE body)?
              | MATCH variable COLON _NL _INDENT (WITH expression body)+ _DEDENT
@@ -80,6 +79,9 @@ grammar = r'''
     write: PRINT LCP expression RCP
 
     read: READ LCP RCP
+    
+    function_call : ID LCP ( | expression (COMMA expression)*) RCP
+    list_declaration : LSP (expression (COMMA expression)*)? RSP
 
     cycle: DO body WHILE expression _NL+
          | WHILE expression body -> while_loop
@@ -350,7 +352,7 @@ class DicInterpreter(Interpreter):
             #tratar se for functionCall, problema no functionCall em si
             return result[0]
         else:
-            return result[1](result[0])
+            return result[1]
 
     def uni_op(self,tree):
         return tree.children[0].value
@@ -372,6 +374,7 @@ class DicInterpreter(Interpreter):
 
     def condition(self,tree):
         # é apenas um if, sem elif nem else
+        self.info["instructions"]["condicionais"] += 1
         if len(tree.children) == 3:
             if self.nested_acc: # se houver nested ifs
                 self.info['nifs'] += 1
@@ -413,6 +416,7 @@ class DicInterpreter(Interpreter):
             # visitar elif's, e se existir else
             for i, child in enumerate(tree.children):
                 if isinstance(child,lark_lexer.Token) and child.type == "ELIF":
+                    self.info["instructions"]["condicionais"] += 1
                     self.nested_acc.append("elif "+self.visit(tree.children[i+1]))
                     self.nested = True
                     self.visit(tree.children[i+2])
@@ -442,16 +446,27 @@ class DicInterpreter(Interpreter):
         
     def for_loop(self,tree):
         var_name = tree.children[1].value
+        typeVar = self.visit(tree.children[3])
         if (var_name,self.scope) in self.dic:
             self.info["errors"].append(f"[ERROR] Variable {var_name} already declared in scope {self.scope}")
         # ver o tipo do iteravel
-        self.dict[(var_name,self.scope)] = ("?",[])
+        self.dic[(var_name,self.scope)] = (typeVar,[])
         self.info["instructions"]["cíclicas"] += 1
         self.visit(tree.children[4])
         
         
 
     def iterable(self,tree):
+        if len(tree.children)==1:
+            variable = self.visit(tree.children[0])
+            if (variable, self.scope) not in self.dic:
+                self.info["errors"].append(f"[ERROR] Variable {variable} not declared.")
+            else:
+                typeList = self.dic[(variable,self.scope)][0]
+                return typeList.split("[")[1].split("]")[0] 
+                
+        else:
+            return "int"
         #falta fazer isto
         pass
 
@@ -485,8 +500,37 @@ for n in nums:
         nums[1:] = n
         print('numbers!')
         print(nums)
-        int r = read(sys)
+        int r = sum(4)
 
+if x:
+    if y:
+        if z:
+            int x = 1 + 1
+            list[int] nums = [1,2,3,4]
+elif a:
+    if b:
+        int c      
+elif e:
+    if d:
+        int f
+    else:
+        int g      
+else:
+    int h
+    
+if x:
+    if y:
+        int z = 3
+
+if x:
+    print(3)
+elif y:
+    read()
+
+if x:
+    print(3)
+else:
+    read()
 '''
 
 frase1='''
@@ -501,7 +545,9 @@ void main():
     x = x + 1
     while x<y :
         x = add(1,4)
-        y = y + 1'''
+        y = y + 1
+
+'''
         
 frase2 = '''
 int x = 1 + 1
@@ -532,7 +578,7 @@ else:
 
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-tree = p.parse(ifs)  # retorna uma tree
+tree = p.parse(frase)  # retorna uma tree
 variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
 pydot__tree_to_png(tree, "tree.png")
