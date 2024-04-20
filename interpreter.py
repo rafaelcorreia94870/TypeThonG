@@ -226,7 +226,9 @@ class DicInterpreter(Interpreter):
             self.nested = True
         else:
             if len(self.nested_acc) > 1:
-                self.info['nested_ifs'].append(" and ".join(self.nested_acc))
+                finalResult = " and ".join(self.nested_acc)+":"
+                before = self.nested_acc[0] + ": \n" + "".join(["if " + i + ": \n " for i in self.nested_acc[1:]])
+                self.info['nested_ifs'].append(before+" => "+finalResult)
                 self.nested_acc = []
             self.nested = False
         self.visit_children(tree)
@@ -373,7 +375,9 @@ class DicInterpreter(Interpreter):
         if len(tree.children) == 3:
             if self.nested_acc: # se houver nested ifs
                 self.info['nifs'] += 1
-            self.nested_acc.append(self.visit(tree.children[1]))
+                self.nested_acc.append(self.visit(tree.children[1]))
+            else:
+                self.nested_acc.append("if "+self.visit(tree.children[1]))
             self.nested = True
             self.visit(tree.children[2])
                 
@@ -381,13 +385,14 @@ class DicInterpreter(Interpreter):
         elif len(tree.children) == 5:
             if self.nested == False:
                 # if 
-                self.nested_acc.append(self.visit(tree.children[1]))
+                if self.nested_acc: # se houver nested ifs
+                    self.info['nifs'] += 1
+                    self.nested_acc.append(self.visit(tree.children[1]))
+                else:
+                    self.nested_acc.append("if "+self.visit(tree.children[1]))
                 self.nested = True
                 self.visit(tree.children[2])
 
-                # else
-                if len(self.nested_acc) > 1:
-                    self.info['nested_ifs'].append(" and ".join(self.nested_acc))
                 self.nested_acc = []
                 self.nested = False
                 self.visit(tree.children[4])
@@ -397,20 +402,22 @@ class DicInterpreter(Interpreter):
         # se tiver elif's e/ou else
         else:
             # visitar if
-            self.nested_acc.append(self.visit(tree.children[1]))
+            if self.nested_acc: # se houver nested ifs
+                self.info['nifs'] += 1
+                self.nested_acc.append(self.visit(tree.children[1]))
+            else:
+                self.nested_acc.append("if "+self.visit(tree.children[1]))
             self.nested = True
             self.visit(tree.children[2])
             
             # visitar elif's, e se existir else
             for i, child in enumerate(tree.children):
                 if isinstance(child,lark_lexer.Token) and child.type == "ELIF":
-                    self.nested_acc.append(self.visit(tree.children[i+1]))
+                    self.nested_acc.append("elif "+self.visit(tree.children[i+1]))
                     self.nested = True
                     self.visit(tree.children[i+2])
 
                 elif isinstance(child,lark_lexer.Token) and child.type == "ELSE":
-                    if self.nested == True and len(self.nested_acc) > 1:
-                        self.info['nested_ifs'].append(" and ".join(self.nested_acc))
                     self.nested_acc = []
                     self.nested = False
                     self.visit(tree.children[i+1])
