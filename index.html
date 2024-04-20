@@ -42,7 +42,7 @@
         </header>
         <div class="w3-container w3-center w3-padding">
             <div style="color: white">
-                <h2>There are {{ instrucao["attribution"] }} attributions, {{ instrucao["leitura"] }} reads, {{ instrucao["escrita"] }} writes, {{ instrucao["condicionais"] }} conditionals and {{ instrucao["cíclicas"] }} cycles</h2>
+                <h2>There are {{ instructions["attribution"] }} attributions, {{ instructions["leitura"] }} reads, {{ instructions["escrita"] }} writes, {{ instructions["condicionais"] }} conditionals and {{ instructions["cíclicas"] }} cycles</h2>
             </div>
             <div class="w3-row">
                 <div class="w3-col w3-padding-large ed scrollable-table" style="width:60%;">
@@ -74,10 +74,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for tipo,numero in tipos %}
+                            {% for type,number in types %}
                             <tr>
-                                <td>{{ tipo }}</td>
-                                <td>{{ numero }}</td>
+                                <td>{{ type }}</td>
+                                <td>{{ number }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -91,8 +91,8 @@
                     <h4>ERRORS</h4>
                 </header>
                 <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
-                    {% for erro in erros %}
-                    <h5>{{ erro }}</h5>
+                    {% for error in errors %}
+                    <h5>{{ error }}</h5>
                     {% endfor %}
                 </div>
             </div>
@@ -105,10 +105,10 @@
                 </header>
                 <div class="w3-container w3-padding" style="color: white;">
                     <h4>There are {{ mausif }} occurencies of nested code</h4>
-                    <h4>You have {{ listaif.length }} ifs that could have been joined</h4>
+                    <h4>You have {{ nested_ifs.length }} ifs that could have been joined</h4>
                 </div>
                 <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
-                    {% for elem in listaif %}
+                    {% for elem in nested_ifs %}
                     <h5>{{ elem }}</h5>
                     {% endfor %}
                 </div>
