@@ -64,7 +64,7 @@ grammar = r'''
            | LCP expression RCP
            | function_call
            | uni_op factor
-           | ID                 -> factor_id
+           | variable                 -> factor_id
            | list_declaration
            
     uni_op : PLUS | MINUS | NOT
@@ -228,7 +228,7 @@ class DicInterpreter(Interpreter):
     def declaration(self,tree):
         name = tree.children[1].value
         key = (name,self.scope)
-        type = self.visit(tree.children[0]).value
+        type = self.visit(tree.children[0])
         if key not in self.dic:
             self.dic[key] = (type,[])
         else:
@@ -275,9 +275,9 @@ class DicInterpreter(Interpreter):
     def type(self,tree):
         result = self.visit_children(tree)
         if len(result) == 1:
-            return result[0]
+            return str(result[0])
         else:
-            return (result[0], result[1:])
+            return "".join(result)
         
     def expression(self,tree):
         result = self.visit_children(tree)
@@ -285,6 +285,8 @@ class DicInterpreter(Interpreter):
         if len(result) == 1:
             #check if result[0] is a list
             if result[0].__class__.__name__ == "str":
+                return result[0]
+            elif result[0].__class__.__name__ == "list":
                 return result[0]
             elif result[0].type == "INT":
                 return int(result[0].value)
@@ -295,7 +297,7 @@ class DicInterpreter(Interpreter):
             return " ".join([str(result[0]),str(result[1]),str(result[2])])#relationOperation(result[1], result[0], result[2])
 
     def factor_id(self,tree):
-        id = self.visit_children(tree)[0].value
+        id = self.visit_children(tree)[0]
         # int b = a + 1 (variável não declarada)
         if (id, self.scope) not in self.dic:
             self.info["erros"].append(f"[ERROR] Variable {id} not declared.")
@@ -351,7 +353,8 @@ class DicInterpreter(Interpreter):
         # no caso em que se atribui o valor de uma função a uma variável é preciso ver se os tipos batem certo
 
     def list_declaration(self,tree):
-        return self.visit_children(tree)
+        listD = "".join([str(elem) for elem in self.visit_children(tree)])
+        return listD
     
     # def condition(self,tree):
     #     # é apenas um if, sem elif nem else
@@ -436,12 +439,13 @@ class DicInterpreter(Interpreter):
         
 
     def iterable(self,tree):
+        #falta fazer isto
         pass
 
     def add_elem(self,tree):
+        #falta fazer isto
         pass
     
-    # não funciona n sei pq
     def update_dic(self, key, child):
         if self.dic[key][0] == 'int':
             self.dic[key][1].append(int(self.visit(tree.children[child]).value))
@@ -494,6 +498,9 @@ void main():
         
 frase2 = '''
 int x = 1 + 1
+list[int] nums = [1,2,3,4]
+nums[1]=3
+nums.out = nums[1]
 '''
         
 ifs = '''
@@ -502,14 +509,10 @@ if x == 1:
     x = 3
 '''
 
-nao_funciona = '''
-t = nums[1:3]
-sys.out = sys.in //access error
-'''
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-pydot__tree_to_png(p.parse(frase1), "tree.png")
-tree = p.parse(frase1)  # retorna uma tree
+pydot__tree_to_png(p.parse(frase2), "tree.png")
+tree = p.parse(frase2)  # retorna uma tree
 variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
 
