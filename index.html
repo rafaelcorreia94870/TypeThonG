@@ -46,7 +46,7 @@
             </div>
             <div class="w3-row">
                 <div class="w3-col w3-padding-large ed scrollable-table" style="width:60%;">
-                    <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
+                    <table class="w3-table w3-centered" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #161b22;">
                             <tr>
                                 <th>ID</th>
@@ -104,8 +104,8 @@
                     <h4>IFs</h4>
                 </header>
                 <div class="w3-container w3-padding" style="color: white;">
-                    <h4>There are {{ mausif }} occurencies of nested code</h4>
-                    <h4>You have {{ nested_ifs.length }} ifs that could have been joined</h4>
+                    <!--h4>There are {{ mausif }} occurencies of nested code</h4-->
+                    <h4>You have {{ nifs }} ifs that could have been joined</h4>
                 </div>
                 <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
                     {% for elem in nested_ifs %}
@@ -114,7 +114,7 @@
                 </div>
             </div>
         </div>
-        <footer class="w3-container w3-padding" style="background-color: #010409;"">
+        <footer class="w3-container w3-padding" style="background-color: #010409;">
         </footer>
     </div>
   </body>
