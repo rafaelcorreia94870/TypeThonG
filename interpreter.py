@@ -445,11 +445,12 @@ class DicInterpreter(Interpreter):
         
     def for_loop(self,tree):
         var_name = tree.children[1].value
-        typeVar = self.visit(tree.children[3])
+        typeVar,values = self.visit(tree.children[3])
         if (var_name,self.scope) in self.dic:
-            self.info["errors"].append(f"[ERROR] Variable {var_name} already declared in scope {self.scope}")
-        # ver o tipo do iteravel
-        self.dic[(var_name,self.scope)] = (typeVar,[])
+            scope = "global" if self.scope == "" else self.scope    
+            self.info["errors"].append(f"[ERROR] Variable {var_name} already declared in scope {scope}")
+        else:
+            self.dic[(var_name,self.scope)] = (typeVar,values)
         self.info["instructions"]["cíclicas"] += 1
         self.visit(tree.children[4])
         
@@ -460,11 +461,14 @@ class DicInterpreter(Interpreter):
             variable = self.visit(tree.children[0])
             if (variable, self.scope) not in self.dic:
                 self.info["errors"].append(f"[ERROR] Variable {variable} not declared.")
+                return None,[]
             elif not self.dic[(variable,self.scope)][1]:
                 self.info["errors"].append(f"[WARNING] Variable {variable} not initialized.")
+                typeList = self.dic[(variable,self.scope)][0]
+                return typeList.split("[")[1].split("]")[0],["error"]
             else:
                 typeList = self.dic[(variable,self.scope)][0]
-                return typeList.split("[")[1].split("]")[0] 
+                return (typeList.split("[")[1].split("]")[0], self.dic[(variable,self.scope)][1])
                 
         else:
             return "int"
@@ -473,62 +477,21 @@ class DicInterpreter(Interpreter):
         pass
 
 frase = '''
-int x = 1
-void main():
-    x = 2
-    int y = 4
-    while x < y:
-        x = sum(1)
-        y = y + 1
-
-int sum(int n):
-    int r = n + 1
-    return r
-
 list[int] nums = [1,2,3,4]
-list[int] sums = [sum(1), sum(2)]
-
 for n in nums:
     n = ((n*4)/2)^2
     do:
         n = n + x
     while (n % 2)
-
-    if n % 2 == 0:
-        nums[1:] = n
-        print('numbers!')
-        print(nums)
-        int r = sum(4)
+int x = 1
+int a = 2
 
 if x:
-    if y:
-        if z:
-            int x = 1 + 1
-            list[int] nums = [1,2,3,4]
+    read()
+    print("1234")
 elif a:
     if b:
-        int c      
-elif e:
-    if d:
-        int f
-    else:
-        int g      
-else:
-    int h
-    
-if x:
-    if y:
-        int z = 3
-
-if x:
-    print(3)
-elif y:
-    read()
-
-if x:
-    print(3)
-else:
-    read()
+        x = 2    
 '''
 
 frase1='''
@@ -554,14 +517,48 @@ nums[1]=3
 nums.out = nums[1]
 '''
         
-ifs = '''
+
+
+ex1 = """
+int main():
+    int x 
+    int y = 1
+    return y
+"""
+
+ex2 = """
+list[int] cenas = [1,2,3,4]
+int z = 3
+string z = 4 
+for z in cenas: 
+    print(z)
+"""
+
+ex3 = """
+int x = y + 1 
+z = x + 1
+"""
+
+ex4 ="""
+int x 
+int y = x + 1
+list[int] cenas
+for n in cenas:
+    x = n + 1
+"""
+
+ex5 = '''
+int x
+int y
+int z
+int a
 if x:
     if y:
         if z:
-            int x = 1 + 1
+            x = 1 + 1
             list[int] nums = [1,2,3,4]
 elif a:
-    if b:
+    if z:
         int c
         
 elif e:
@@ -576,7 +573,7 @@ else:
 
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-tree = p.parse(frase)  # retorna uma tree
+tree = p.parse(ex5)  # retorna uma tree
 variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
 pydot__tree_to_png(tree, "tree.png")
