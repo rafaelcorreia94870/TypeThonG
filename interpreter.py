@@ -220,7 +220,6 @@ class DicInterpreter(Interpreter):
                 self.info["errors"].append(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
         self.info["vars"].sort(key=lambda x: (x[1],x[0]))
         self.info["types"] = self.info["types"].items()
-        pprint.pprint(self.dic)
         return self.info
     
     def content(self,tree):
@@ -231,7 +230,7 @@ class DicInterpreter(Interpreter):
                 finalResult = " and ".join(self.nested_acc)+":"
                 before = self.nested_acc[0] + ": \n" + "".join(["if " + i + ": \n " for i in self.nested_acc[1:]])
                 self.info['nested_ifs'].append(before+" => "+finalResult)
-                self.nested_acc = []
+            self.nested_acc = []
             self.nested = False
         self.visit_children(tree)
 
@@ -461,17 +460,16 @@ class DicInterpreter(Interpreter):
             variable = self.visit(tree.children[0])
             if (variable, self.scope) not in self.dic:
                 self.info["errors"].append(f"[ERROR] Variable {variable} not declared.")
+            elif not self.dic[(variable,self.scope)][1]:
+                self.info["errors"].append(f"[WARNING] Variable {variable} not initialized.")
             else:
                 typeList = self.dic[(variable,self.scope)][0]
                 return typeList.split("[")[1].split("]")[0] 
                 
         else:
             return "int"
-        #falta fazer isto
-        pass
 
     def add_elem(self,tree):
-        #falta fazer isto
         pass
 
 frase = '''
@@ -583,9 +581,6 @@ variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
 pydot__tree_to_png(tree, "tree.png")
 
-""" tree = p.parse(frase1)  # retorna uma tree
-variables = DicInterpreter().visit(tree)
-pprint.pprint(variables) """
 
 env = Environment(loader=FileSystemLoader('.'))
 
