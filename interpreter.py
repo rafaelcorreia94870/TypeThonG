@@ -405,8 +405,7 @@ class DicInterpreter(Interpreter):
         else:
             # visitar if
             if self.nested_acc: # se houver nested ifs
-                self.info['nifs'] += 1
-                self.nested_acc.append(self.visit(tree.children[1]))
+                self.nested_acc= ["if "+self.visit(tree.children[1])]
             else:
                 self.nested_acc.append("if "+self.visit(tree.children[1]))
             self.nested = True
@@ -560,6 +559,9 @@ if x:
 elif a:
     if z:
         int c
+    elif x:
+        if y:
+            int d
         
 elif e:
     if d:
@@ -592,5 +594,4 @@ output = template.render(variables)
 
 with open("finalOutput.html", "w") as f:
     f.write(output)
-# Print or use the rendered HTML
 
