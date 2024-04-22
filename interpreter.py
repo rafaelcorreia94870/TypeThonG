@@ -387,11 +387,7 @@ class DicInterpreter(Interpreter):
         elif len(tree.children) == 5:
             if self.nested == False:
                 # if 
-                if self.nested_acc: # se houver nested ifs
-                    self.info['nifs'] += 1
-                    self.nested_acc.append(self.visit(tree.children[1]))
-                else:
-                    self.nested_acc.append("if "+self.visit(tree.children[1]))
+                self.nested_acc.append("if "+self.visit(tree.children[1]))
                 self.nested = True
                 self.visit(tree.children[2])
 
@@ -571,7 +567,15 @@ elif e:
         
 else:
     int h
+    
+if x:
+    if y:
+        int z
+    elif w:
+        if a:
+            int v
 '''
+
 
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())

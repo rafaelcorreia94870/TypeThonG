@@ -42,7 +42,7 @@
         </header>
         <div class="w3-container w3-center w3-padding">
             <div style="color: white">
-                <h2>There are 2 attributions, 0 reads, 0 writes, 9 conditionals and 0 cycles</h2>
+                <h2>There are 2 attributions, 0 reads, 0 writes, 13 conditionals and 0 cycles</h2>
             </div>
             <div class="w3-row">
                 <div class="w3-col w3-padding-large ed scrollable-table" style="width:60%;">
@@ -99,6 +99,12 @@
                             </tr>
                             
                             <tr>
+                                <td>v</td>
+                                <td>global</td>
+                                <td>int</td>
+                            </tr>
+                            
+                            <tr>
                                 <td>x</td>
                                 <td>global</td>
                                 <td>int</td>
@@ -131,7 +137,7 @@
                             
                             <tr>
                                 <td>int</td>
-                                <td>9</td>
+                                <td>10</td>
                             </tr>
                             
                             <tr>
@@ -167,6 +173,14 @@
                     
                     <h5>[WARNING] Variable d not initialized.</h5>
                     
+                    <h5>[WARNING] Variable y not initialized.</h5>
+                    
+                    <h5>[ERROR] Variable z already declared in scope global</h5>
+                    
+                    <h5>[ERROR] Variable w not declared.</h5>
+                    
+                    <h5>[WARNING] Variable a not initialized.</h5>
+                    
                     <h5>[global] [WARNING] Variable y declared but never used.</h5>
                     
                     <h5>[global] [WARNING] Variable z declared but never used.</h5>
@@ -183,6 +197,8 @@
                     
                     <h5>[global] [WARNING] Variable h declared but never used.</h5>
                     
+                    <h5>[global] [WARNING] Variable v declared but never used.</h5>
+                    
                 </div>
             </div>
         </div>
@@ -194,7 +210,7 @@
                 </header>
                 <div class="w3-container w3-padding" style="color: white;">
                     <!--h4>There are  occurencies of nested code</h4-->
-                    <h4>You have 3 ifs that could have been joined</h4>
+                    <h4>You have 4 ifs that could have been joined</h4>
                 </div>
                 <div class="w3-code  scrollable-table" id="results" style="color: white; background-color: #0d1117;">
                     
@@ -206,6 +222,10 @@ if y:
                     <h5>elif x: 
 if y: 
   => elif x and y:</h5>
+                    
+                    <h5>elif w: 
+if a: 
+  => elif w and a:</h5>
                     
                 </div>
             </div>
