@@ -1,10 +1,12 @@
-import pprint
 import lark.tree as lark_tree
 import lark.lexer as lark_lexer
-from lark import Lark,Transformer,Discard
+
+from lark import Lark
+from lark.indenter import Indenter
 from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
-from lark.indenter import Indenter
+
+import pprint
 from collections import Counter
 from jinja2 import Environment, FileSystemLoader
 #dicionario com as chaves como variavel, scope e o seu valor os valores que lhe foram atribuidos
@@ -487,6 +489,45 @@ if x:
 elif a:
     if b:
         x = 2    
+        
+int x
+int x1
+int x2
+int x3
+int x4
+int x5
+int x6
+int x7
+int y
+int z
+int a
+if x:
+    if y:
+        if z:
+            x = 1 + 1
+            list[int] nums = [1,2,3,4]
+elif a:
+    if z:
+        int c
+    elif x:
+        if y:
+            int d
+        
+elif e:
+    if d:
+        int f
+    else:
+        int g
+        
+else:
+    int h
+    
+if x:
+    if y:
+        int z
+    elif w:
+        if a:
+            int v
 '''
 
 frase1='''
@@ -576,10 +617,31 @@ if x:
             int v
 '''
 
+teste = """
+if x:
+    if y:
+        if z:
+            x = 1 + 1
+            list[int] nums = [1,2,3,4]
+elif a:
+    if z:
+        int c
+        
+elif e:
+    if d:
+        int f
+    else:
+        int g
+        
+else:
+    int h
+"""
 
+
+code_ex = frase
 
 p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-tree = p.parse(ex5)  # retorna uma tree
+tree = p.parse(code_ex)  # retorna uma tree
 variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
 pydot__tree_to_png(tree, "tree.png")
@@ -588,14 +650,12 @@ pydot__tree_to_png(tree, "tree.png")
 env = Environment(loader=FileSystemLoader('.'))
 
 # Load your HTML template
-template = env.get_template('index.html')
+template = env.get_template('ttg-template.html')
 
-
-
+variables["code"] = code_ex
 # Render the template with variables
 output = template.render(variables)
 
-
-with open("finalOutput.html", "w") as f:
+with open("typethong-info.html", "w") as f:
     f.write(output)
 

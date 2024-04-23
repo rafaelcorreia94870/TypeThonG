@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>typethong</title>
+    <link rel="icon" href="images/logo.webp" />
+    <link rel="stylesheet" href="styles/w3.css"/>
+    <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+
+    <style>
+        body {
+            font-family: 'JetBrains Mono', monospace !important;
+
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
+        .verycoolshadow {
+              text-shadow:5px 5px 4px #e707cc;
+              color: white;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #0d1117; 
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+          background: #8b067c1b;
+          border-radius: 10px;
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+          background: #e707cd80; 
+        }
+
+        .error {
+            color: red;
+        }
+        .warning {
+            color: orange;
+        }
+        .blueish {
+            color: #93d38a; /* Blueish color for "if" and "elif" */
+            font-weight: bold;
+
+        }
+        .gray {
+            color: rgb(143, 143, 143); /* Gray color for "=>" */
+            font-weight: thin;
+
+        }
+        .green {
+            color: rgb(180, 129, 199); /* Gray color for "=>" */
+            font-weight: bold;
+        }
+    </style>
+  </head>
+
+  <body style="background-color: #0d1117;">
+    <div class="w3-card-4" >
+        <header class="w3-container w3-center w3-wide verycoolshadow w3-padding" style="background-color: #010409;">
+            <h1 style="font-size:50px;">typethong</h1>
+        </header>
+
+
+
+        
+        <div class="w3-container w3-padding" style="display: flex; flex-direction: column;">
+                <div class="code+vars" style="display:flex; 
+                                              flex-direction:row; 
+                                              align-items:flex-start; 
+                                              justify-content: space-around;
+                                              height: 500px;">
+                    <div class="w3-container scrollable-table" style=" flex-direction:column; width:50%; max-height: 500px; overflow-y: scroll;">
+                        <p class="verycoolshadow" style="color: #DCDCDC;
+                                                     text-align: center;
+                                                     font-size: 30px;
+                                                     font-weight: 800;">CODE</p>
+                        
+                        <pre>
+                            <code id="custom-code" style="color: white">       
+                                
+list[int] nums = [1,2,3,4]
+for n in nums:
+    n = ((n*4)/2)^2
+    do:
+        n = n + x
+    while (n % 2)
+int x = 1
+int a = 2
+
+if x:
+    read()
+    print("1234")
+elif a:
+    if b:
+        x = 2    
+        
+int x
+int x1
+int x2
+int x3
+int x4
+int x5
+int x6
+int x7
+int y
+int z
+int a
+if x:
+    if y:
+        if z:
+            x = 1 + 1
+            list[int] nums = [1,2,3,4]
+elif a:
+    if z:
+        int c
+    elif x:
+        if y:
+            int d
+        
+elif e:
+    if d:
+        int f
+    else:
+        int g
+        
+else:
+    int h
+    
+if x:
+    if y:
+        int z
+    elif w:
+        if a:
+            int v
+
+                            </code>
+                        </pre>
+                    </div>
+
+                    <script>
+                        // Define keywords in your personalized language
+                        var keywords = [
+                            "int", "set", "array", "tuple", "string", "list", "void",
+                            "return", "if", "elif", "else", "do", "while", "for",
+                            "in", "range", "read", "write", "match", "with", "print"
+                        ];
+                    
+                        // Get the code element
+                        var codeElement = document.getElementById("custom-code");
+                    
+                        // Get the text content of the code element
+                        var codeText = codeElement.innerText;
+                    
+                        // Highlight keywords
+                        keywords.forEach(function(keyword) {
+                            var regex = new RegExp("\\b" + keyword + "\\b", "g");
+                            codeText = codeText.replace(regex, '<span style="color: #93d38a; font-weight:bold">' + keyword + '</span>');
+                        });
+                    
+                        // Update the HTML content of the code element
+                        codeElement.innerHTML = codeText;
+                    </script>
+
+                    <div class="w3-container w3-padding w3-centered scrollable-table; " style="width:50%; max-height: 500px; overflow-y: scroll;">
+                        <p class="verycoolshadow" style="color: #DCDCDC; 
+                                                     text-align: center;
+                                                     font-size: 30px;
+                                                     font-weight: 800;">VARIABLES</p>
+                        <table class="w3-table w3-centered" style="background-color:#0d1117; color: white;">
+                            <thead style="background-color: #22262ca3;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Scope</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>a</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>c</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>d</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>f</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>g</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>h</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>n</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>nums</td>
+                                    <td>global</td>
+                                    <td>list[int]</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>v</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x1</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x2</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x3</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x4</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x5</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x6</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>x7</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>y</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>z</td>
+                                    <td>global</td>
+                                    <td>int</td>
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="w3-col w3-padding-large ed scrollable-table">
+                    <div class = "w3-padding-large" style="color: white; text-align: center;">
+                        <h2 style="font-size: 30px;">There are 8 attributions, 1 reads, 1 writes, 16 conditionals and 2 cycles</h2>
+                    </div>
+                    <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
+                        <thead style="background-color: #22262ca3; ">
+                            <tr>
+                                <th style="text-align: center; width: 50%;">Type</th>
+                                <th style="text-align: center; width: 50%;">Number of variables</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>list[int]</td>
+                                <td>1</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>int</td>
+                                <td>18</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; 
+                    justify-content: space-around;
+                    flex-direction: row;
+                    flex-wrap: nowrap;">
+
+            <div class="w3-row w3-padding" style="width: 50%; max-height: 500px; overflow-y: scroll;">
+                <div class="w3-container">
+                    <header class="w3-container verycoolshadow" style="text-align: center;">
+                        <p style="font-size: 30px; font-weight: 800;">ERRORS</p>
+                    </header>
+                    <div class="w3-code  scrollable-table" id="error-results" style="color: white; background-color: #0d1117;">
+                        
+                        <h5>[ERROR] Variable x not declared.</h5>
+                        
+                        <h5>[ERROR] Variable b not declared.</h5>
+                        
+                        <h5>[ERROR] Variable x already declared in scope global</h5>
+                        
+                        <h5>[ERROR] Variable a already declared in scope global</h5>
+                        
+                        <h5>[WARNING] Variable y not initialized.</h5>
+                        
+                        <h5>[WARNING] Variable z not initialized.</h5>
+                        
+                        <h5>[ERROR] Variable nums already declared in scope global</h5>
+                        
+                        <h5>[WARNING] Variable z not initialized.</h5>
+                        
+                        <h5>[WARNING] Variable y not initialized.</h5>
+                        
+                        <h5>[ERROR] Variable e not declared.</h5>
+                        
+                        <h5>[WARNING] Variable d not initialized.</h5>
+                        
+                        <h5>[WARNING] Variable y not initialized.</h5>
+                        
+                        <h5>[ERROR] Variable z already declared in scope global</h5>
+                        
+                        <h5>[ERROR] Variable w not declared.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x1 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x2 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x3 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x4 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x5 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x6 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x7 declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable y declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable z declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable c declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable d declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable f declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable g declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable h declared but never used.</h5>
+                        
+                        <h5>[global] [WARNING] Variable v declared but never used.</h5>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                var errors = document.querySelectorAll("#error-results h5");
+        
+                errors.forEach(function(error) {
+                    var text = error.innerText;
+                    var regex = /\[(.*?)\]/g;
+                    var coloredText = text.replace(regex, function(match) {
+                        if (match.includes("[ERROR]")) {
+                            return '<span class="error">' + match + '</span>';
+                        } else if (match.includes("[WARNING]")) {
+                            return '<span class="warning">' + match + '</span>';
+                        }
+                        return match;
+                    });
+                    error.innerHTML = coloredText;
+                });
+            </script>
+
+            <div class="w3-row" style="width: 50%; max-height: 500px; overflow-y: scroll;">
+                <div class="w3-container" >
+                    <header class="w3-container verycoolshadow" style="text-align: center;">
+                        <p style="font-size: 30px; font-weight: 800;">IF's</p>
+                    </header>
+                    <div class="w3-container" style="color: white;">
+                        <h4>You have 5 ifs that could have been joined</h4>
+                    </div>
+                    <div class="w3-code  scrollable-table" id="if-results" style="color: white; background-color: #0d1117;">
+                        
+                        <h5>elif a: 
+if b: 
+  => elif a and b:</h5>
+                        
+                        <h5>if x: 
+if y: 
+ if z: 
+  => if x and y and z:</h5>
+                        
+                        <h5>elif x: 
+if y: 
+  => elif x and y:</h5>
+                        
+                        <h5>elif w: 
+if a: 
+  => elif w and a:</h5>
+                        
+                    </div>
+                    <script>
+                        var elements = document.querySelectorAll("#if-results h5");
+                    
+                        elements.forEach(function(elem) {
+                            var text = elem.innerText;
+                    
+                            text = text.replace(/\b(if|elif)\b/g, '<span class="blueish">$1</span>');
+                    
+                            text = text.replace(/=>/g, '<span class="gray">=> </span>');
+                    
+                            text = text.replace(/and/g, '<span class="green">and </span>');
+                    
+                            elem.innerHTML = text;
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+        <footer class="w3-container w3-padding" style="background-color: #010409;">
+        </footer>
+    </div>
+  </body>
+</html>
