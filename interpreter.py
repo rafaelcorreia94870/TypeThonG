@@ -638,25 +638,27 @@ else:
 """
 
 def generate_html(frase):
-    code_ex = frase
+    print(frase)
+    code_ex = frase.strip()
 
     p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
     tree = p.parse(code_ex)  # retorna uma tree
     variables = DicInterpreter().visit(tree)
     pprint.pprint(variables)
-    pydot__tree_to_png(tree, "tree.png")
+    pydot__tree_to_png(tree, "outputs/tree.png")
 
 
     env = Environment(loader=FileSystemLoader('.'))
 
     # Load your HTML template
-    template = env.get_template('ttg-template.html')
+    template = env.get_template('templates/ttg-template.html')
 
     variables["code"] = code_ex
     # Render the template with variables
     output = template.render(variables)
     with open("templates/typethong-info.html", "w") as f:
         f.write(output)
+        
 
     
 def main():
@@ -667,19 +669,19 @@ def main():
     tree = p.parse(code_ex)  # retorna uma tree
     variables = DicInterpreter().visit(tree)
     pprint.pprint(variables)
-    pydot__tree_to_png(tree, "tree.png")
+    pydot__tree_to_png(tree, "outputs/tree.png")
 
 
     env = Environment(loader=FileSystemLoader('.'))
 
     # Load your HTML template
-    template = env.get_template('ttg-template.html')
+    template = env.get_template('templates/ttg-template.html')
 
     variables["code"] = code_ex
     # Render the template with variables
     output = template.render(variables)
 
-    with open("typethong-info.html", "w") as f:
+    with open("outputs/typethong-info.html", "w") as f:
         f.write(output)
     
 if __name__ == '__main__':
