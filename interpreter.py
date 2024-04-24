@@ -3,7 +3,7 @@ import lark.lexer as lark_lexer
 
 from lark import Lark
 from lark.indenter import Indenter
-# lark.tree import pydot__tree_to_png
+from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
 
 import pprint
@@ -644,7 +644,7 @@ p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
 tree = p.parse(code_ex)  # retorna uma tree
 variables = DicInterpreter().visit(tree)
 pprint.pprint(variables)
-#pydot__tree_to_png(tree, "tree.png")
+pydot__tree_to_png(tree, "tree.png")
 
 
 env = Environment(loader=FileSystemLoader('.'))
