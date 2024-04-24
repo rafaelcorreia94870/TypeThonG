@@ -87,7 +87,7 @@
                         
                         <pre style="max-height: 400px; overflow-y: scroll;">
                             <code id="custom-code" style="color: white">       
-                                {{ code }}
+                                sdalkds ba vba 
                             </code>
                         </pre>
                     </div>
@@ -131,13 +131,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for id,scope,type in vars %}
-                                <tr>
-                                    <td>{{ id }}</td>
-                                    <td>{{ scope }}</td>
-                                    <td>{{ type }}</td>
-                                </tr>
-                                {% endfor %}
+                                
                             </tbody>
                         </table>
                         </div>
@@ -146,7 +140,7 @@
                 
                 <div class="w3-col w3-padding-large ed scrollable-table">
                     <div class = "w3-padding-large" style="color: white; text-align: center;">
-                        <h2 style="font-size: 30px;">There are {{ instructions["attribution"] }} attributions, {{ instructions["leitura"] }} reads, {{ instructions["escrita"] }} writes, {{ instructions["condicionais"] }} conditionals and {{ instructions["cíclicas"] }} cycles</h2>
+                        <h2 style="font-size: 30px;">There are 0 attributions, 0 reads, 0 writes, 0 conditionals and 0 cycles</h2>
                     </div>
                     <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #22262ca3; ">
@@ -156,12 +150,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for type,number in types %}
-                            <tr>
-                                <td>{{ type }}</td>
-                                <td>{{ number }}</td>
-                            </tr>
-                            {% endfor %}
+                            
                         </tbody>
                     </table>
                 </div>
@@ -179,9 +168,13 @@
                         <p style="font-size: 30px; font-weight: 800;">ERRORS</p>
                     </header>
                     <div class="w3-code  scrollable-table" id="error-results" style="max-height: 500px; overflow-y: scroll; color: white; background-color: #0d1117;">
-                        {% for error in errors %}
-                        <h5>{{ error }}</h5>
-                        {% endfor %}
+                        
+                        <h5>[ERROR] Variable sdalkds not declared.</h5>
+                        
+                        <h5>[ERROR] Variable ba not declared.</h5>
+                        
+                        <h5>[ERROR] Variable vba not declared.</h5>
+                        
                     </div>
                 </div>
             </div>
@@ -210,12 +203,10 @@
                         <p style="font-size: 30px; font-weight: 800;">IF's</p>
                     </header>
                     <div class="w3-container" style="color: white;">
-                        <h4>You have {{ nifs }} ifs that could have been joined</h4>
+                        <h4>You have 0 ifs that could have been joined</h4>
                     </div>
                     <div class="w3-code  scrollable-table" id="if-results" style="color: white; background-color: #0d1117;">
-                        {% for elem in nested_ifs %}
-                        <h5>{{ elem }}</h5>
-                        {% endfor %}
+                        
                     </div>
                     <script>
                         var elements = document.querySelectorAll("#if-results h5");

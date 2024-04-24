@@ -637,25 +637,50 @@ else:
     int h
 """
 
+def generate_html(frase):
+    code_ex = frase
 
-code_ex = frase
-
-p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
-tree = p.parse(code_ex)  # retorna uma tree
-variables = DicInterpreter().visit(tree)
-pprint.pprint(variables)
-pydot__tree_to_png(tree, "tree.png")
+    p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
+    tree = p.parse(code_ex)  # retorna uma tree
+    variables = DicInterpreter().visit(tree)
+    pprint.pprint(variables)
+    pydot__tree_to_png(tree, "tree.png")
 
 
-env = Environment(loader=FileSystemLoader('.'))
+    env = Environment(loader=FileSystemLoader('.'))
 
-# Load your HTML template
-template = env.get_template('ttg-template.html')
+    # Load your HTML template
+    template = env.get_template('ttg-template.html')
 
-variables["code"] = code_ex
-# Render the template with variables
-output = template.render(variables)
+    variables["code"] = code_ex
+    # Render the template with variables
+    output = template.render(variables)
+    with open("templates/typethong-info.html", "w") as f:
+        f.write(output)
 
-with open("typethong-info.html", "w") as f:
-    f.write(output)
+    
+def main():
 
+    code_ex = frase
+
+    p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
+    tree = p.parse(code_ex)  # retorna uma tree
+    variables = DicInterpreter().visit(tree)
+    pprint.pprint(variables)
+    pydot__tree_to_png(tree, "tree.png")
+
+
+    env = Environment(loader=FileSystemLoader('.'))
+
+    # Load your HTML template
+    template = env.get_template('ttg-template.html')
+
+    variables["code"] = code_ex
+    # Render the template with variables
+    output = template.render(variables)
+
+    with open("typethong-info.html", "w") as f:
+        f.write(output)
+    
+if __name__ == '__main__':
+    main()
