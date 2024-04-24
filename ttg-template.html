@@ -79,13 +79,13 @@
                                               align-items:flex-start; 
                                               justify-content: space-around;
                                               height: 500px;">
-                    <div class="w3-container scrollable-table" style=" flex-direction:column; width:50%; max-height: 500px; overflow-y: scroll;">
+                    <div class="w3-container scrollable-table" style=" flex-direction:column; width:50%;">
                         <p class="verycoolshadow" style="color: #DCDCDC;
                                                      text-align: center;
                                                      font-size: 30px;
-                                                     font-weight: 800;">CODE</p>
+                                                     font-weight: 800; ">CODE</p>
                         
-                        <pre>
+                        <pre style="max-height: 400px; overflow-y: scroll;">
                             <code id="custom-code" style="color: white">       
                                 {{ code }}
                             </code>
@@ -116,11 +116,12 @@
                         codeElement.innerHTML = codeText;
                     </script>
 
-                    <div class="w3-container w3-padding w3-centered scrollable-table; " style="width:50%; max-height: 500px; overflow-y: scroll;">
+                    <div class="w3-container w3-padding w3-centered scrollable-table; " style="width:50%;">
                         <p class="verycoolshadow" style="color: #DCDCDC; 
                                                      text-align: center;
                                                      font-size: 30px;
                                                      font-weight: 800;">VARIABLES</p>
+                        <div style="max-height: 400px; overflow-y: scroll;">
                         <table class="w3-table w3-centered" style="background-color:#0d1117; color: white;">
                             <thead style="background-color: #22262ca3;">
                                 <tr>
@@ -139,6 +140,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
                 
@@ -171,12 +173,12 @@
                     flex-direction: row;
                     flex-wrap: nowrap;">
 
-            <div class="w3-row w3-padding" style="width: 50%; max-height: 500px; overflow-y: scroll;">
+            <div class="w3-row w3-padding" style="width: 50%;">
                 <div class="w3-container">
                     <header class="w3-container verycoolshadow" style="text-align: center;">
                         <p style="font-size: 30px; font-weight: 800;">ERRORS</p>
                     </header>
-                    <div class="w3-code  scrollable-table" id="error-results" style="color: white; background-color: #0d1117;">
+                    <div class="w3-code  scrollable-table" id="error-results" style="max-height: 500px; overflow-y: scroll; color: white; background-color: #0d1117;">
                         {% for error in errors %}
                         <h5>{{ error }}</h5>
                         {% endfor %}
