@@ -6,7 +6,9 @@ from lark.indenter import Indenter
 from lark.tree import pydot__tree_to_png
 from lark.visitors import Interpreter
 
+import os
 import pprint
+import graphviz
 from collections import Counter
 from jinja2 import Environment, FileSystemLoader
 #dicionario com as chaves como variavel, scope e o seu valor os valores que lhe foram atribuidos
@@ -22,7 +24,7 @@ grammar = r'''
            | read (_NL)*
            | condition
            | add_elem
-           | RETURN expression (_NL)*
+           | RETURN expression (_NL)* -> return
            | expression
            | function
 
@@ -203,6 +205,7 @@ class DicInterpreter(Interpreter):
         self.scope = ""
         self.nested = False
         self.nested_acc = []
+        self.last_visited = []
     
     # vars= [(ID,scope,type),...] 
     # errors = [lista de erros]
@@ -211,7 +214,9 @@ class DicInterpreter(Interpreter):
     # mausif : in
     # listaif = [strings,..] 
     def start(self,tree):
-        self.info = {"vars": [], "errors": [], "types": Counter(), "instructions": Counter(), "nifs": 0, "nested_ifs": []}
+        self.info = {"vars": [], "errors": [], "types": Counter(), "instructions": Counter(), "nifs": 0, "nested_ifs": [], "cfg": {}}
+        self.info['cfg']['global'] = 'digraph global{\n'
+        
         self.visit_children(tree)
         for (name, scope), (type, attr) in self.dic.items():
             if scope=="":
@@ -222,6 +227,9 @@ class DicInterpreter(Interpreter):
                 self.info["errors"].append(f"[{scope}] [WARNING] Variable {name} declared but never used.") 
         self.info["vars"].sort(key=lambda x: (x[1],x[0]))
         self.info["types"] = self.info["types"].items()
+        
+        self.create_cfg()
+        
         return self.info
     
     def content(self,tree):
@@ -234,7 +242,20 @@ class DicInterpreter(Interpreter):
                 self.info['nested_ifs'].append(before+" => "+finalResult)
             self.nested_acc = []
             self.nested = False
-        self.visit_children(tree)
+        
+        expr = self.visit_children(tree)[0]
+        print(f"expr: {expr}")
+        print(f"last_visited: {self.last_visited}\n")
+        
+        if self.last_visited == []:
+            for expression in expr:
+                self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
+        else:
+            for last in self.last_visited:
+                for expression in expr:
+                    self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
+        self.last_visited = expr
+        return expr
 
     def function(self,tree):
         self.scope = tree.children[1].value
@@ -245,6 +266,8 @@ class DicInterpreter(Interpreter):
         name = tree.children[1].value
         key = (name,self.scope)
         type = self.visit(tree.children[0])
+        value = ''
+        
         if key not in self.dic:
             self.dic[key] = (type,[])
         else:
@@ -257,12 +280,20 @@ class DicInterpreter(Interpreter):
             self.info["instructions"]["attribution"] += 1
             #verificar se o tipo da expressão coincide com o tipo da variável
             self.dic[key][1].append(self.visit(tree.children[3]))
-
-    
+            value = str(self.visit(tree.children[3]))
+        
+            expr = f"{type} {name} = {value}"        
+            #self.last_visited = expr
+            return [expr]
+        else:
+            expr = f"{type} {name}"
+            #self.last_visited = expr
+            return [expr]
+        
     def attribution(self,tree):
         name = self.visit(tree.children[0])
         key = (name,self.scope)
-        
+        value = str(self.visit(tree.children[2]))
        
         if key in self.dic:
             #verificar tipo da expressão depois
@@ -278,9 +309,17 @@ class DicInterpreter(Interpreter):
 
             else:
                 self.info["errors"].append(f"[ERROR] Variable {name} not declared")
+                
+        expr = f"{name} = {value}"
+        #self.last_visited = expr
+        return [expr]
     
     def body(self,tree):
-        self.visit_children(tree)
+        children_expr = self.visit_children(tree)
+        # devolver o último elemento para fazer a ligaçao ao próximo nodo no CFG
+        print(f"children_expr: {children_expr}")
+        return children_expr[-1]
+        
 
     def variable(self,tree):
         return tree.children[0].value
@@ -322,8 +361,7 @@ class DicInterpreter(Interpreter):
         elif not self.dic[(id,self.scope)][1]:
             self.info["errors"].append(f"[WARNING] Variable {id} not initialized.")
         return id
-
-        
+   
     def relational_op(self,tree):
         return tree.children[0].value
     
@@ -372,19 +410,20 @@ class DicInterpreter(Interpreter):
         listD = "".join([str(elem) for elem in self.visit_children(tree)])
         return listD
 
-
     def condition(self,tree):
         # é apenas um if, sem elif nem else
         self.info["instructions"]["condicionais"] += 1
+        
         if len(tree.children) == 3:
+            expr1 = self.visit(tree.children[1])
             if self.nested_acc: # se houver nested ifs
                 self.info['nifs'] += 1
-                self.nested_acc.append(self.visit(tree.children[1]))
+                self.nested_acc.append(expr1)
             else:
-                self.nested_acc.append("if "+self.visit(tree.children[1]))
+                self.nested_acc.append("if "+expr1)
             self.nested = True
-            self.visit(tree.children[2])
-                
+            expr = ["if " + expr1, self.visit(tree.children[2])]
+            
         # se tiver if e else
         elif len(tree.children) == 5:
             if self.nested == False:
@@ -421,16 +460,22 @@ class DicInterpreter(Interpreter):
                     self.nested_acc = []
                     self.nested = False
                     self.visit(tree.children[i+1])
-        #return "condition"
+        
+        return expr
 
     def write(self,tree):
         self.info["instructions"]["escrita"] += 1
         #isto seria se fosse para correr, não sei se é suposto
         #print(self.visit(tree.children[2]))
+        expr = f"print({self.visit(tree.children[2])})"
+        #self.last_visited = expr
+        return [expr]
 
     def read(self,tree):
         self.info["instructions"]["leitura"] += 1
-
+        expr = "read()"
+        #self.last_visited = expr
+        return [expr]
 
     def cycle(self,tree):
         self.info["instructions"]["cíclicas"] += 1
@@ -451,8 +496,6 @@ class DicInterpreter(Interpreter):
         self.info["instructions"]["cíclicas"] += 1
         self.visit(tree.children[4])
         
-        
-
     def iterable(self,tree):
         if len(tree.children)==1:
             variable = self.visit(tree.children[0])
@@ -473,6 +516,56 @@ class DicInterpreter(Interpreter):
     def add_elem(self,tree):
         pass
 
+    def create_cfg(self):
+        """
+        Estratégia para criar CFG:
+        - Dicionário para armazenar vários scopes (funções) 
+            {scope: [(tipo_nodo, (expr, filhos), ...],
+             scope2: ...}
+        - Filhos -> [expr, (tipo_nodo, filhos), ...]-> 
+                    "cycle", -> while, for
+                    "function" -> 
+        """
+        # for each scope build a CFG graph (in DOT format)
+        """
+        Code example:
+        int x
+        int y = 1
+        y = 2
+        if x:
+            print(x)
+        read()
+        
+        Graph example:
+        digraph G {
+            inicio -> "int x"
+            "int x" -> "int y = 1"
+            "int y = 1" -> "y = 2"
+            "y = 2" -> "if x"
+            "if x" -> "print x"
+            "if x" -> ""
+            "print(x)" -> ""
+            "" -> "read()"
+            "read()" -> fim
+        }
+        """
+        for scope, graph in self.info['cfg'].items():
+            graph += "}\n"
+            print(graph)
+            # Create a Graph object from the DOT graph
+            dot_graph = graphviz.Source(graph)
+
+            # create cfg folder inside outputs if it doesn't exist
+            if not os.path.exists("outputs/cfg"):
+                os.makedirs("outputs/cfg")
+
+            # Save the graph as an image file (PNG format in this case) in outputs folder
+            dot_graph.render(f"{scope if scope != '' else 'global'}",
+                             directory="outputs/cfg",
+                             format="png",
+                             cleanup=True)
+
+
 frase = '''
 list[int] nums = [1,2,3,4]
 for n in nums:
@@ -490,17 +583,6 @@ elif a:
     if b:
         x = 2    
         
-int x
-int x1
-int x2
-int x3
-int x4
-int x5
-int x6
-int x7
-int y
-int z
-int a
 if x:
     if y:
         if z:
@@ -552,8 +634,6 @@ list[int] nums = [1,2,3,4]
 nums[1]=3
 nums.out = nums[1]
 '''
-        
-
 
 ex1 = """
 int main():
@@ -637,6 +717,15 @@ else:
     int h
 """
 
+ex69 = """
+int x
+int y = 1
+y = 2
+if x:
+    print(x)
+read()
+"""
+
 def generate_html(frase):
     print(frase)
     code_ex = frase.strip()
@@ -645,7 +734,7 @@ def generate_html(frase):
     tree = p.parse(code_ex)  # retorna uma tree
     variables = DicInterpreter().visit(tree)
     pprint.pprint(variables)
-    pydot__tree_to_png(tree, "outputs/tree.png")
+    pydot__tree_to_png(tree, "outputs/trees/tree.png")
 
 
     env = Environment(loader=FileSystemLoader('.'))
@@ -659,17 +748,19 @@ def generate_html(frase):
     with open("templates/typethong-info.html", "w") as f:
         f.write(output)
         
-
-    
 def main():
 
-    code_ex = frase
+    code_ex = ex69
 
     p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
     tree = p.parse(code_ex)  # retorna uma tree
     variables = DicInterpreter().visit(tree)
     pprint.pprint(variables)
-    pydot__tree_to_png(tree, "outputs/tree.png")
+    
+    # create trees folder inside outputs if it doesn't exist
+    if not os.path.exists("outputs/trees"):
+        os.makedirs("outputs/trees")
+    pydot__tree_to_png(tree, "outputs/trees/tree.png")
 
 
     env = Environment(loader=FileSystemLoader('.'))
@@ -686,3 +777,8 @@ def main():
     
 if __name__ == '__main__':
     main()
+    
+    
+# mail: aaragao@di.uminho.pt -> António Aragão
+# Conta na máquina EPL para publicação
+

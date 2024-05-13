@@ -86,10 +86,15 @@
                                                      font-weight: 800; ">CODE</p>
                         
                         <pre style="max-height: 400px; overflow-y: scroll;">
-                            <code id="custom-code" style="color: white">int x
+                            <code id="custom-code" style="padding: 10px; color: white">
+
+int x
+int y = 1
+y = 2
 if x:
-    if y:
-        int z = 1</code>
+    print(x)
+read()
+</code>
                         </pre>
                     </div>
 
@@ -140,7 +145,7 @@ if x:
                                 </tr>
                                 
                                 <tr>
-                                    <td>z</td>
+                                    <td>y</td>
                                     <td>global</td>
                                     <td>int</td>
                                 </tr>
@@ -153,7 +158,7 @@ if x:
                 
                 <div class="w3-col w3-padding-large ed scrollable-table">
                     <div class = "w3-padding-large" style="color: white; text-align: center;">
-                        <h2 style="font-size: 30px;">There are 1 attributions, 0 reads, 0 writes, 2 conditionals and 0 cycles</h2>
+                        <h2 style="font-size: 30px;">There are 2 attributions, 1 reads, 1 writes, 1 conditionals and 0 cycles</h2>
                     </div>
                     <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #22262ca3; ">
@@ -189,7 +194,7 @@ if x:
                         
                         <h5>[WARNING] Variable x not initialized.</h5>
                         
-                        <h5>[ERROR] Variable y not declared.</h5>
+                        <h5>[WARNING] Variable x not initialized.</h5>
                         
                         <h5>[global] [WARNING] Variable x declared but never used.</h5>
                         
@@ -221,13 +226,9 @@ if x:
                         <p style="font-size: 30px; font-weight: 800;">IF's</p>
                     </header>
                     <div class="w3-container" style="color: white;">
-                        <h4>You have 1 ifs that could have been joined</h4>
+                        <h4>You have 0 ifs that could have been joined</h4>
                     </div>
                     <div class="w3-code  scrollable-table" id="if-results" style="color: white; background-color: #0d1117;">
-                        
-                        <h5>if x: 
-if y: 
-  => if x and y:</h5>
                         
                     </div>
                     <script>

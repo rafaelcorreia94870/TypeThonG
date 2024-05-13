@@ -87,23 +87,8 @@
                         
                         <pre style="max-height: 400px; overflow-y: scroll;">
                             <code id="custom-code" style="padding: 10px; color: white">
-if x:
-    if y:
-        if z:
-            x = 1 + 1
-            list[int] nums = [1,2,3,4]
-elif a:
-    if z:
-        int c
-        
-elif e:
-    if d:
-        int f
-    else:
-        int g
-        
-else:
-    int h</code>
+int x = 2
+int y = x * 2</code>
                         </pre>
                     </div>
 
@@ -148,33 +133,15 @@ else:
                             <tbody>
                                 
                                 <tr>
-                                    <td>c</td>
+                                    <td>x</td>
                                     <td>global</td>
                                     <td>int</td>
                                 </tr>
                                 
                                 <tr>
-                                    <td>f</td>
+                                    <td>y</td>
                                     <td>global</td>
                                     <td>int</td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>g</td>
-                                    <td>global</td>
-                                    <td>int</td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>h</td>
-                                    <td>global</td>
-                                    <td>int</td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>nums</td>
-                                    <td>global</td>
-                                    <td>list[int]</td>
                                 </tr>
                                 
                             </tbody>
@@ -185,7 +152,7 @@ else:
                 
                 <div class="w3-col w3-padding-large ed scrollable-table">
                     <div class = "w3-padding-large" style="color: white; text-align: center;">
-                        <h2 style="font-size: 30px;">There are 1 attributions, 0 reads, 0 writes, 7 conditionals and 0 cycles</h2>
+                        <h2 style="font-size: 30px;">There are 2 attributions, 0 reads, 0 writes, 0 conditionals and 0 cycles</h2>
                     </div>
                     <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #22262ca3; ">
@@ -197,13 +164,8 @@ else:
                         <tbody>
                             
                             <tr>
-                                <td>list[int]</td>
-                                <td>1</td>
-                            </tr>
-                            
-                            <tr>
                                 <td>int</td>
-                                <td>4</td>
+                                <td>2</td>
                             </tr>
                             
                         </tbody>
@@ -223,30 +185,6 @@ else:
                         <p style="font-size: 30px; font-weight: 800;">ERRORS</p>
                     </header>
                     <div class="w3-code  scrollable-table" id="error-results" style="max-height: 500px; overflow-y: scroll; color: white; background-color: #0d1117;">
-                        
-                        <h5>[ERROR] Variable x not declared.</h5>
-                        
-                        <h5>[ERROR] Variable y not declared.</h5>
-                        
-                        <h5>[ERROR] Variable z not declared.</h5>
-                        
-                        <h5>[ERROR] Variable x not declared</h5>
-                        
-                        <h5>[ERROR] Variable a not declared.</h5>
-                        
-                        <h5>[ERROR] Variable z not declared.</h5>
-                        
-                        <h5>[ERROR] Variable e not declared.</h5>
-                        
-                        <h5>[ERROR] Variable d not declared.</h5>
-                        
-                        <h5>[global] [WARNING] Variable c declared but never used.</h5>
-                        
-                        <h5>[global] [WARNING] Variable f declared but never used.</h5>
-                        
-                        <h5>[global] [WARNING] Variable g declared but never used.</h5>
-                        
-                        <h5>[global] [WARNING] Variable h declared but never used.</h5>
                         
                     </div>
                 </div>
@@ -276,18 +214,9 @@ else:
                         <p style="font-size: 30px; font-weight: 800;">IF's</p>
                     </header>
                     <div class="w3-container" style="color: white;">
-                        <h4>You have 3 ifs that could have been joined</h4>
+                        <h4>You have 0 ifs that could have been joined</h4>
                     </div>
                     <div class="w3-code  scrollable-table" id="if-results" style="color: white; background-color: #0d1117;">
-                        
-                        <h5>if x: 
-if y: 
- if z: 
-  => if x and y and z:</h5>
-                        
-                        <h5>elif a: 
-if z: 
-  => elif a and z:</h5>
                         
                     </div>
                     <script>
