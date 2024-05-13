@@ -156,6 +156,19 @@ grammar = r'''
     _NL: /(\r?\n[\t ]*)+/
 '''
 
+def addToGraph(self, expr):
+    print(f"expr: {expr}")
+    print(f"last_visited: {self.last_visited}\n")
+    
+    if self.last_visited == []:
+        for expression in expr:
+            self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
+    else:
+        for last in self.last_visited:
+            for expression in expr:
+                self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
+    self.last_visited = expr
+
 
 def relationOperation(op, a, b):
     if op == "==":
@@ -244,17 +257,17 @@ class DicInterpreter(Interpreter):
             self.nested = False
         
         expr = self.visit_children(tree)[0]
-        print(f"expr: {expr}")
-        print(f"last_visited: {self.last_visited}\n")
+        # print(f"expr: {expr}")
+        # print(f"last_visited: {self.last_visited}\n")
         
-        if self.last_visited == []:
-            for expression in expr:
-                self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
-        else:
-            for last in self.last_visited:
-                for expression in expr:
-                    self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
-        self.last_visited = expr
+        # if self.last_visited == []:
+        #     for expression in expr:
+        #         self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
+        # else:
+        #     for last in self.last_visited:
+        #         for expression in expr:
+        #             self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
+        # self.last_visited = expr
         return expr
 
     def function(self,tree):
@@ -284,10 +297,12 @@ class DicInterpreter(Interpreter):
         
             expr = f"{type} {name} = {value}"        
             #self.last_visited = expr
+            addToGraph(self, [expr])
             return [expr]
         else:
             expr = f"{type} {name}"
             #self.last_visited = expr
+            addToGraph(self, [expr])
             return [expr]
         
     def attribution(self,tree):
@@ -312,6 +327,7 @@ class DicInterpreter(Interpreter):
                 
         expr = f"{name} = {value}"
         #self.last_visited = expr
+        addToGraph(self, [expr])
         return [expr]
     
     def body(self,tree):
@@ -422,7 +438,10 @@ class DicInterpreter(Interpreter):
             else:
                 self.nested_acc.append("if "+expr1)
             self.nested = True
-            expr = ["if " + expr1, self.visit(tree.children[2])]
+            addToGraph(self, ["if " + expr1])
+            expr = self.visit(tree.children[2])
+            expr = ["if "+expr1]+expr
+            self.last_visited = expr
             
         # se tiver if e else
         elif len(tree.children) == 5:
@@ -469,12 +488,14 @@ class DicInterpreter(Interpreter):
         #print(self.visit(tree.children[2]))
         expr = f"print({self.visit(tree.children[2])})"
         #self.last_visited = expr
+        addToGraph(self,[expr] )
         return [expr]
 
     def read(self,tree):
         self.info["instructions"]["leitura"] += 1
         expr = "read()"
         #self.last_visited = expr
+        addToGraph(self,[expr] )
         return [expr]
 
     def cycle(self,tree):
@@ -723,7 +744,10 @@ int y = 1
 y = 2
 if x:
     print(x)
+    if y:
+        int z = 3
 read()
+int a = 4
 """
 
 def generate_html(frase):
