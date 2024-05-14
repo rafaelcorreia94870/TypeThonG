@@ -88,15 +88,13 @@
                         <pre style="max-height: 400px; overflow-y: scroll;">
                             <code id="custom-code" style="padding: 10px; color: white">
 
-int x
-int y = 1
-y = 2
-if x:
-    print(x)
-    if y:
-        int z = 3
-read()
-int a = 4
+int x = 1
+do:
+    for y in ys:
+        int y = 2
+    while y < 10:
+        y = y + 1
+while x < 10
 </code>
                         </pre>
                     </div>
@@ -142,12 +140,6 @@ int a = 4
                             <tbody>
                                 
                                 <tr>
-                                    <td>a</td>
-                                    <td>global</td>
-                                    <td>int</td>
-                                </tr>
-                                
-                                <tr>
                                     <td>x</td>
                                     <td>global</td>
                                     <td>int</td>
@@ -156,13 +148,7 @@ int a = 4
                                 <tr>
                                     <td>y</td>
                                     <td>global</td>
-                                    <td>int</td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>z</td>
-                                    <td>global</td>
-                                    <td>int</td>
+                                    <td>None</td>
                                 </tr>
                                 
                             </tbody>
@@ -173,7 +159,7 @@ int a = 4
                 
                 <div class="w3-col w3-padding-large ed scrollable-table">
                     <div class = "w3-padding-large" style="color: white; text-align: center;">
-                        <h2 style="font-size: 30px;">There are 4 attributions, 1 reads, 1 writes, 2 conditionals and 0 cycles</h2>
+                        <h2 style="font-size: 30px;">There are 3 attributions, 0 reads, 0 writes, 0 conditionals and 3 cycles</h2>
                     </div>
                     <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #22262ca3; ">
@@ -186,7 +172,12 @@ int a = 4
                             
                             <tr>
                                 <td>int</td>
-                                <td>4</td>
+                                <td>1</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>None</td>
+                                <td>1</td>
                             </tr>
                             
                         </tbody>
@@ -207,11 +198,9 @@ int a = 4
                     </header>
                     <div class="w3-code  scrollable-table" id="error-results" style="max-height: 500px; overflow-y: scroll; color: white; background-color: #0d1117;">
                         
-                        <h5>[WARNING] Variable x not initialized.</h5>
+                        <h5>[ERROR] Variable ys not declared.</h5>
                         
-                        <h5>[WARNING] Variable x not initialized.</h5>
-                        
-                        <h5>[global] [WARNING] Variable x declared but never used.</h5>
+                        <h5>[ERROR] Variable y already declared in scope global</h5>
                         
                     </div>
                 </div>

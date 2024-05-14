@@ -19,7 +19,7 @@ grammar = r'''
 
     content: declaration (_NL)*
            | attribution (_NL)*
-           | cycle
+           | cycle (_NL)*
            | write (_NL)*
            | read (_NL)*
            | condition
@@ -75,8 +75,6 @@ grammar = r'''
            
     uni_op : PLUS | MINUS | NOT
      
-
-
     condition: IF expression body (ELIF expression body)* (ELSE body)?
              | MATCH variable COLON _NL _INDENT (WITH expression body)+ _DEDENT
 
@@ -87,7 +85,7 @@ grammar = r'''
     function_call : ID LCP ( | expression (COMMA expression)*) RCP
     list_declaration : LSP (expression (COMMA expression)*)? RSP
 
-    cycle: DO body WHILE expression _NL+
+    cycle: DO body WHILE expression -> do_while_loop
          | WHILE expression body -> while_loop
          | FOR ID IN iterable body -> for_loop
 
@@ -156,20 +154,6 @@ grammar = r'''
     _NL: /(\r?\n[\t ]*)+/
 '''
 
-def addToGraph(self, expr):
-    print(f"expr: {expr}")
-    print(f"last_visited: {self.last_visited}\n")
-    
-    if self.last_visited == []:
-        for expression in expr:
-            self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
-    else:
-        for last in self.last_visited:
-            for expression in expr:
-                self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
-    self.last_visited = expr
-
-
 def relationOperation(op, a, b):
     if op == "==":
         return a == b
@@ -216,9 +200,11 @@ class DicInterpreter(Interpreter):
     def __init__(self):
         self.dic = {}
         self.scope = ""
+        self._scope = self.scope if self.scope != '' else 'global'
         self.nested = False
         self.nested_acc = []
         self.last_visited = []
+        self.first_last = False
     
     # vars= [(ID,scope,type),...] 
     # errors = [lista de erros]
@@ -226,10 +212,18 @@ class DicInterpreter(Interpreter):
     # instructions = {total: int, atribuicoes: int, leitura: int, escrita, int, condicionais: int, cíclicas : int}
     # mausif : in
     # listaif = [strings,..] 
+    # cfg = {global: string, funcao1: string, ...}
     def start(self,tree):
         self.info = {"vars": [], "errors": [], "types": Counter(), "instructions": Counter(), "nifs": 0, "nested_ifs": [], "cfg": {}}
-        self.info['cfg']['global'] = 'digraph global{\n'
-        
+        self.info['cfg']['global'] = '''digraph global{
+    beautify = true;
+    graph [fontname = "JetBrains Mono", color=\"#93d38a\", pad=\"0.5\"];
+    node [fontname = "JetBrains Mono", color=\"#93d38a\", fontcolor=\"#ffffff\", style="filled", fillcolor=\"#0e330a\"];
+    edge [fontname = "JetBrains Mono", color=\"#ea3cbe\"];
+    bgcolor=\"#0d1117\";
+    inicio [fontcolor="#88f17e"];\n\n'''
+         
+        #self.info['cfg']['global'] = "digraph global{\nbgcolor=\"#0d1117\";\n"
         self.visit_children(tree)
         for (name, scope), (type, attr) in self.dic.items():
             if scope=="":
@@ -255,19 +249,8 @@ class DicInterpreter(Interpreter):
                 self.info['nested_ifs'].append(before+" => "+finalResult)
             self.nested_acc = []
             self.nested = False
-        
+
         expr = self.visit_children(tree)[0]
-        # print(f"expr: {expr}")
-        # print(f"last_visited: {self.last_visited}\n")
-        
-        # if self.last_visited == []:
-        #     for expression in expr:
-        #         self.info['cfg'][self.scope if self.scope != '' else 'global'] += "inicio -> " + f'"{expression}"' + "\n"
-        # else:
-        #     for last in self.last_visited:
-        #         for expression in expr:
-        #             self.info['cfg'][self.scope if self.scope != '' else 'global'] += f'"{last}"' + " -> " + f'"{expression}"' + "\n"
-        # self.last_visited = expr
         return expr
 
     def function(self,tree):
@@ -296,13 +279,11 @@ class DicInterpreter(Interpreter):
             value = str(self.visit(tree.children[3]))
         
             expr = f"{type} {name} = {value}"        
-            #self.last_visited = expr
-            addToGraph(self, [expr])
+            self.add_to_graph([expr])
             return [expr]
         else:
             expr = f"{type} {name}"
-            #self.last_visited = expr
-            addToGraph(self, [expr])
+            self.add_to_graph([expr])
             return [expr]
         
     def attribution(self,tree):
@@ -326,16 +307,14 @@ class DicInterpreter(Interpreter):
                 self.info["errors"].append(f"[ERROR] Variable {name} not declared")
                 
         expr = f"{name} = {value}"
-        #self.last_visited = expr
-        addToGraph(self, [expr])
+        self.add_to_graph([expr])
         return [expr]
     
     def body(self,tree):
         children_expr = self.visit_children(tree)
+
         # devolver o último elemento para fazer a ligaçao ao próximo nodo no CFG
-        print(f"children_expr: {children_expr}")
-        return children_expr[-1]
-        
+        return children_expr[0], children_expr[-1]
 
     def variable(self,tree):
         return tree.children[0].value
@@ -423,39 +402,61 @@ class DicInterpreter(Interpreter):
         # no caso em que se atribui o valor de uma função a uma variável é preciso ver se os tipos batem certo
 
     def list_declaration(self,tree):
-        listD = "".join([str(elem) for elem in self.visit_children(tree)])
-        return listD
+        list_d = "".join([str(elem) for elem in self.visit_children(tree)])
+        return list_d
 
     def condition(self,tree):
         # é apenas um if, sem elif nem else
         self.info["instructions"]["condicionais"] += 1
         
         if len(tree.children) == 3:
-            expr1 = self.visit(tree.children[1])
+            if_expr = self.visit(tree.children[1])
             if self.nested_acc: # se houver nested ifs
                 self.info['nifs'] += 1
-                self.nested_acc.append(expr1)
+                self.nested_acc.append(if_expr)
             else:
-                self.nested_acc.append("if "+expr1)
+                self.nested_acc.append("if " + if_expr)
             self.nested = True
-            addToGraph(self, ["if " + expr1])
-            expr = self.visit(tree.children[2])
-            expr = ["if "+expr1]+expr
+            
+            self.add_to_graph(["if " + if_expr])
+            _, if_last = self.visit(tree.children[2])
+            
+            #print(if_last)
+            
+            expr = ["if " + if_expr] + if_last
+
+            #print(expr)
+
             self.last_visited = expr
             
         # se tiver if e else
         elif len(tree.children) == 5:
+            if_expr = self.visit(tree.children[1])
+            expressao = "if " + if_expr
+            self.add_to_graph([expressao])
             if self.nested == False:
-                # if 
-                self.nested_acc.append("if "+self.visit(tree.children[1]))
+            # if 
+                self.nested_acc.append(expressao)
                 self.nested = True
-                self.visit(tree.children[2])
-
+                # cfg
+                _, if_last = self.visit(tree.children[2])
+                self.last_visited = [expressao]
+                
+            # else
                 self.nested_acc = []
                 self.nested = False
-                self.visit(tree.children[4])
+                # cfg
+                _, else_last = self.visit(tree.children[4])
+                expr = if_last + else_last
+                self.last_visited = expr
+                
             else:
-                self.visit_children(tree)
+                _, if_last = self.visit(tree.children[2])
+                self.last_visited = [expressao]
+                
+                _, else_last = self.visit(tree.children[4])
+                expr = if_last + else_last
+                self.last_visited = expr
 
         # se tiver elif's e/ou else
         else:
@@ -465,6 +466,7 @@ class DicInterpreter(Interpreter):
             else:
                 self.nested_acc.append("if "+self.visit(tree.children[1]))
             self.nested = True
+        
             self.visit(tree.children[2])
             
             # visitar elif's, e se existir else
@@ -485,17 +487,14 @@ class DicInterpreter(Interpreter):
     def write(self,tree):
         self.info["instructions"]["escrita"] += 1
         #isto seria se fosse para correr, não sei se é suposto
-        #print(self.visit(tree.children[2]))
         expr = f"print({self.visit(tree.children[2])})"
-        #self.last_visited = expr
-        addToGraph(self,[expr] )
+        self.add_to_graph([expr])
         return [expr]
 
     def read(self,tree):
         self.info["instructions"]["leitura"] += 1
         expr = "read()"
-        #self.last_visited = expr
-        addToGraph(self,[expr] )
+        self.add_to_graph([expr])
         return [expr]
 
     def cycle(self,tree):
@@ -504,32 +503,63 @@ class DicInterpreter(Interpreter):
     
     def while_loop(self,tree):
         self.info["instructions"]["cíclicas"] += 1
-        self.visit(tree.children[2])
+        # cfg
+        expr = f"while {self.visit(tree.children[1])}"
+        
+        self.add_to_graph([expr])
+        _, last_while = self.visit(tree.children[2])
+        self.add_to_graph_single(last_while, [expr])
+        self.last_visited = [expr]
+        
+        return [expr]
+    
+    def do_while_loop(self,tree):
+        self.info["instructions"]["cíclicas"] += 1
+        
+        # cfg
+        first_do, last_do = self.visit(tree.children[1])
+        expr = f"while {self.visit(tree.children[3])}"
+        # jabardo para garantir que só volta ao primeiro
+        first_do = [first_do[0]]
+        self.add_to_graph_single(last_do, [expr])
+        self.add_to_graph_single([expr], first_do)
+        
+        return [expr]
         
     def for_loop(self,tree):
         var_name = tree.children[1].value
-        typeVar,values = self.visit(tree.children[3])
+        typeVar,values,var_iter = self.visit(tree.children[3])
         if (var_name,self.scope) in self.dic:
             scope = "global" if self.scope == "" else self.scope    
             self.info["errors"].append(f"[ERROR] Variable {var_name} already declared in scope {scope}")
         else:
             self.dic[(var_name,self.scope)] = (typeVar,values)
         self.info["instructions"]["cíclicas"] += 1
-        self.visit(tree.children[4])
+        
+        # cfg
+        
+        expr = f"for {var_name} in {var_iter}"
+        
+        self.add_to_graph([expr])
+        _, last_for = self.visit(tree.children[4])
+        self.add_to_graph_single(last_for, [expr])
+        self.last_visited = [expr]   
+        
+        return [expr]
         
     def iterable(self,tree):
         if len(tree.children)==1:
             variable = self.visit(tree.children[0])
             if (variable, self.scope) not in self.dic:
                 self.info["errors"].append(f"[ERROR] Variable {variable} not declared.")
-                return None,[]
+                return None,[],variable
             elif not self.dic[(variable,self.scope)][1]:
                 self.info["errors"].append(f"[WARNING] Variable {variable} not initialized.")
                 typeList = self.dic[(variable,self.scope)][0]
-                return typeList.split("[")[1].split("]")[0],["error"]
+                return typeList.split("[")[1].split("]")[0],["error"],variable
             else:
                 typeList = self.dic[(variable,self.scope)][0]
-                return (typeList.split("[")[1].split("]")[0], self.dic[(variable,self.scope)][1])
+                return (typeList.split("[")[1].split("]")[0], self.dic[(variable,self.scope)][1]),variable
                 
         else:
             return "int"
@@ -537,16 +567,55 @@ class DicInterpreter(Interpreter):
     def add_elem(self,tree):
         pass
 
+    def add_to_graph(self, expr):
+        condition = ['if', 'for', 'while']
+        
+        if self.last_visited == []:
+            for expression in expr:
+                self.create_edge("inicio", expression)
+                # criar nodo diamond para condições
+                if expression.split()[0] in condition:
+                    self.create_edge(expression, styles={"shape": "diamond", 
+                                                         "style": "filled", 
+                                                         "fillcolor": "#4a1241"})
+        else:
+            for last in self.last_visited:
+                for expression in expr:
+                    self.create_edge(last, expression)
+                    # criar nodo diamond para condições
+                    if expression.split()[0] in condition:
+                        self.create_edge(expression, styles={"shape": "diamond", 
+                                                             "style": "filled", 
+                                                             "fillcolor": "#4a1241"})
+        
+        self.last_visited = expr
+        
+    def add_to_graph_single(self, org, dest):
+        condition = ['if', 'for', 'while']
+        for o in org:
+            for d in dest:
+                self.create_edge(o, d)
+                # criar nodo diamond para condições
+                if o.split()[0] in condition:
+                    self.create_edge(o, styles={"shape": "diamond", 
+                                                "style": "filled", 
+                                                "fillcolor": "#4a1241"})
+
+        self.last_visited = dest
+
+    def create_edge(self, org, dest=None, styles={}):
+        # styles = {style: "filled", fillcolor: "#4a1241"}
+        # styles_string = "[style=filled, fillcolor=\"#4a1241\"]"
+        if styles:
+            styles_string = f"[" + ", ".join([f"{k}=\"{v}\"" for k, v in styles.items()]) + "];"
+            if dest != None:
+                self.info['cfg'][self._scope] += f'    "{org}" -> "{dest}" {styles_string}\n'
+            else:
+                self.info['cfg'][self._scope] += f'    "{org}" {styles_string}\n'
+        else:
+            self.info['cfg'][self._scope] += f'    "{org}" -> "{dest}"\n'
+                    
     def create_cfg(self):
-        """
-        Estratégia para criar CFG:
-        - Dicionário para armazenar vários scopes (funções) 
-            {scope: [(tipo_nodo, (expr, filhos), ...],
-             scope2: ...}
-        - Filhos -> [expr, (tipo_nodo, filhos), ...]-> 
-                    "cycle", -> while, for
-                    "function" -> 
-        """
         # for each scope build a CFG graph (in DOT format)
         """
         Code example:
@@ -570,8 +639,14 @@ class DicInterpreter(Interpreter):
             "read()" -> fim
         }
         """
+        
+        # para terminar o grafo
+        for last in self.last_visited:
+            self.create_edge(last, "fim")
+        self.create_edge("fim", styles={"shape": "doublecircle", "fontcolor": "#ff3024"})
+        self.info['cfg'][self._scope] += "}\n"
+        
         for scope, graph in self.info['cfg'].items():
-            graph += "}\n"
             print(graph)
             # Create a Graph object from the DOT graph
             dot_graph = graphviz.Source(graph)
@@ -581,11 +656,10 @@ class DicInterpreter(Interpreter):
                 os.makedirs("outputs/cfg")
 
             # Save the graph as an image file (PNG format in this case) in outputs folder
-            dot_graph.render(f"{scope if scope != '' else 'global'}",
+            dot_graph.render(f"{self._scope}",
                              directory="outputs/cfg",
                              format="png",
                              cleanup=True)
-
 
 frase = '''
 list[int] nums = [1,2,3,4]
@@ -738,16 +812,63 @@ else:
     int h
 """
 
-ex69 = """
+cfg_if = """
 int x
-int y = 1
-y = 2
 if x:
     print(x)
     if y:
-        int z = 3
+        int z
+        read()
+"""
+
+cfg_ifelse = """
+if x:
+    if a:
+        int a = 1
+    else:
+        int x = 3
+else:
+    int b = 2
 read()
-int a = 4
+"""
+
+cfg_forwhile = """
+for x in xs:
+    int x = 1
+    while w < 10:
+        int w = 2
+        int z = 3
+while z < 10:
+    int v = 2
+    for y in ys:
+        int y = 2
+        int w = 3
+"""
+
+cfg_dowhile = """
+int x = 1
+do:
+    for y in ys:
+        int y = 2
+    while y < 10:
+        y = y + 1
+while x < 10
+"""
+
+# ainda tem erros estupidos
+cfg_completo = """
+if x:
+    while x < 10:
+        if y:
+            for x in xs:
+                read()
+                print('res')
+        else:
+            do:
+                if x < y:
+                    print(x)
+            while y < 10
+print('Thats all folks!')
 """
 
 def generate_html(frase):
@@ -774,18 +895,17 @@ def generate_html(frase):
         
 def main():
 
-    code_ex = ex69
+    code_ex = cfg_dowhile
 
     p = Lark(grammar, parser='lalr', postlex=TreeIndenter())
     tree = p.parse(code_ex)  # retorna uma tree
     variables = DicInterpreter().visit(tree)
-    pprint.pprint(variables)
+    #pprint.pprint(variables)
     
     # create trees folder inside outputs if it doesn't exist
     if not os.path.exists("outputs/trees"):
         os.makedirs("outputs/trees")
     pydot__tree_to_png(tree, "outputs/trees/tree.png")
-
 
     env = Environment(loader=FileSystemLoader('.'))
 
