@@ -1,2 +1,3 @@
 .vs
 DS_Store
+__pycache__/interpreter.cpython-312.pyc
