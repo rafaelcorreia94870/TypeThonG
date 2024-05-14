@@ -5,7 +5,6 @@
     <title>typethong</title>
     <link rel="icon" href="images/logo.webp" />
     <link rel="stylesheet" href="static/styles/w3.css"/>
-    <link rel="stylesheet" href="../static/styles/w3.css"/>
     <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
 
     <style>
@@ -88,8 +87,18 @@
                         
                         <pre style="max-height: 400px; overflow-y: scroll;">
                             <code id="custom-code" style="padding: 10px; color: white">
-int x = 2
-int y = x * 2</code>
+if x:
+    while x < 10:
+        if y:
+            for x in xs:
+                read()
+                print('res')
+        else:
+            do:
+                if x < y:
+                    print(x)
+            while y < 10
+print('Thats all folks!')</code>
                         </pre>
                     </div>
 
@@ -136,13 +145,7 @@ int y = x * 2</code>
                                 <tr>
                                     <td>x</td>
                                     <td>global</td>
-                                    <td>int</td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>y</td>
-                                    <td>global</td>
-                                    <td>int</td>
+                                    <td>None</td>
                                 </tr>
                                 
                             </tbody>
@@ -153,7 +156,7 @@ int y = x * 2</code>
                 
                 <div class="w3-col w3-padding-large ed scrollable-table">
                     <div class = "w3-padding-large" style="color: white; text-align: center;">
-                        <h2 style="font-size: 30px;">There are 2 attributions, 0 reads, 0 writes, 0 conditionals and 0 cycles</h2>
+                        <h2 style="font-size: 30px;">There are 0 attributions, 1 reads, 3 writes, 3 conditionals and 3 cycles</h2>
                     </div>
                     <table class="w3-table w3-centered ed" style="background-color:#0d1117; color: white;">
                         <thead style="background-color: #22262ca3; ">
@@ -165,8 +168,8 @@ int y = x * 2</code>
                         <tbody>
                             
                             <tr>
-                                <td>int</td>
-                                <td>2</td>
+                                <td>None</td>
+                                <td>1</td>
                             </tr>
                             
                         </tbody>
@@ -186,6 +189,24 @@ int y = x * 2</code>
                         <p style="font-size: 30px; font-weight: 800;">ERRORS</p>
                     </header>
                     <div class="w3-code  scrollable-table" id="error-results" style="max-height: 500px; overflow-y: scroll; color: white; background-color: #0d1117;">
+                        
+                        <h5>[ERROR] Variable x not declared.</h5>
+                        
+                        <h5>[ERROR] Variable x not declared.</h5>
+                        
+                        <h5>[ERROR] Variable y not declared.</h5>
+                        
+                        <h5>[ERROR] Variable xs not declared.</h5>
+                        
+                        <h5>[WARNING] Variable x not initialized.</h5>
+                        
+                        <h5>[ERROR] Variable y not declared.</h5>
+                        
+                        <h5>[WARNING] Variable x not initialized.</h5>
+                        
+                        <h5>[ERROR] Variable y not declared.</h5>
+                        
+                        <h5>[global] [WARNING] Variable x declared but never used.</h5>
                         
                     </div>
                 </div>
@@ -238,7 +259,15 @@ int y = x * 2</code>
                 </div>
             </div>
         </div>
-        
+        <div name="image" class="w3-row w3-center w3-padding-64 ">
+            <header>
+            <h1 class="verycoolshadow w3-padding" style="color: #DCDCDC;
+                                                         text-align: center;
+                                                         font-size: 30px;
+                                                         font-weight: 800;">CONTROL FLOW GRAPH</h1>
+            </header>
+            <img src="/static/cfg/cfg.png" alt="CFG" style="">
+        </div>
         <footer class="w3-container w3-padding" style="background-color: #010409;">
         </footer>
     </div>

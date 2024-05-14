@@ -656,8 +656,8 @@ class DicInterpreter(Interpreter):
                 os.makedirs("outputs/cfg")
 
             # Save the graph as an image file (PNG format in this case) in outputs folder
-            dot_graph.render(f"{self._scope}",
-                             directory="outputs/cfg",
+            dot_graph.render(f"cfg",
+                             directory="static/cfg/",
                              format="png",
                              cleanup=True)
 
